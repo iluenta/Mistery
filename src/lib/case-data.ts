@@ -327,7 +327,7 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
   ],
   solution: {
     guiltySuspectId: 'claudia',
-    validKeyEvidenceIds: ['e16', 'e08', 'e18', 'e17', 'e07'],
+    validKeyEvidenceIds: ['e16', 'e08', 'e18', 'e17', 'e07', 'e05'],
     explanation: `Claudia Ferrer es la responsable de la muerte de Helena Vidal.
 
 Tras descubrir el desvío de 180.000€ (auditoría interna, prueba E08), Helena decidió confrontarla en persona esa misma noche antes de denunciarla legalmente y hacerlo público al día siguiente, como anunció a su abogado en el mensaje de voz de las 23:15 (E18) y como ya le había advertido por escrito a la propia Claudia esa tarde (E05).
