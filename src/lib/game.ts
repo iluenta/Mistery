@@ -24,7 +24,7 @@ export function createGame(): string {
 
 export interface PublicAccusation {
   suspectId: string
-  keyEvidenceId: string
+  keyEvidenceIds: string[]
   motive: string
   correct: boolean
   explanation: string
@@ -113,24 +113,33 @@ export function resetAccusation(code: string) {
 
 export function submitAccusation(
   code: string,
-  payload: { suspectId: string; keyEvidenceId: string; motive: string }
+  payload: { suspectId: string; keyEvidenceIds: string[]; motive: string }
 ): PublicAccusation {
   const row = getGameRow(code)
   if (!row) throw new Error('Expediente no encontrado')
 
+  const sol = CASE.solution
+  const selected = payload.keyEvidenceIds
+  const hasRequired = sol.requiredKeyEvidenceIds.every((id) => selected.includes(id))
+  const supportingCount = sol.supportingKeyEvidenceIds.filter((id) =>
+    selected.includes(id)
+  ).length
   const correct =
-    payload.suspectId === CASE.solution.guiltySuspectId &&
-    CASE.solution.validKeyEvidenceIds.includes(payload.keyEvidenceId)
+    payload.suspectId === sol.guiltySuspectId &&
+    hasRequired &&
+    supportingCount >= sol.minSupporting
 
-  const guilty = CASE.suspects.find((s) => s.id === CASE.solution.guiltySuspectId)!
+  const guilty = CASE.suspects.find((s) => s.id === sol.guiltySuspectId)!
 
+  // El culpable y el epílogo solo se revelan si la acusación es correcta:
+  // una acusación errónea no debe spoilear la solución.
   const accusation: PublicAccusation = {
     suspectId: payload.suspectId,
-    keyEvidenceId: payload.keyEvidenceId,
+    keyEvidenceIds: selected,
     motive: payload.motive,
     correct,
-    explanation: CASE.solution.explanation,
-    guiltySuspectName: guilty.name,
+    explanation: correct ? sol.explanation : '',
+    guiltySuspectName: correct ? guilty.name : '',
     submittedAt: new Date().toISOString(),
   }
 

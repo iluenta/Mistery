@@ -32,7 +32,11 @@ export interface Suspect {
 
 export interface CaseSolution {
   guiltySuspectId: string
-  validKeyEvidenceIds: string[]
+  // La acusación es correcta solo si se señala al culpable Y se aportan TODAS las
+  // pruebas requeridas MÁS al menos `minSupporting` de las pruebas de apoyo.
+  requiredKeyEvidenceIds: string[]
+  supportingKeyEvidenceIds: string[]
+  minSupporting: number
   explanation: string
 }
 
@@ -129,8 +133,8 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
         '"Helena me hizo firmar como avalista de un préstamo suyo hace un año, diciéndome que era un trámite sin importancia. Hace poco entendí lo que había firmado realmente. Pero esa noche estuve trabajando en la oficina hasta tarde, mi tarjeta de acceso lo demuestra."',
       alibiClaim: 'Dice que estuvo trabajando hasta tarde en las oficinas de PulseFit, fichando con su tarjeta de empleada.',
       motiveHint:
-        'Descubrió recientemente que es avalista legal de una deuda personal de Helena que no entendía del todo cuando firmó. Se siente utilizada y expuesta legalmente.',
-      relatedEvidenceIds: ['e10', 'e14'],
+        'Descubrió recientemente que es avalista solidaria de una deuda de 95.000€ de Helena: si Helena se hundía o lo hacía público, Lucía respondía con su patrimonio. Se siente utilizada, arruinada y traicionada.',
+      relatedEvidenceIds: ['e10', 'e14', 'e19', 'e20'],
     },
     {
       id: 'diego',
@@ -277,7 +281,7 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
       title: 'Registro de acceso de empleada — Lucía Soto',
       summary: 'Tarjeta de fichaje en las oficinas de PulseFit.',
       content:
-        'El sistema de control de acceso de las oficinas de PulseFit registra la entrada de Lucía Soto a las 19:02 y su salida a las 00:45, sin registrar ninguna salida intermedia. Las oficinas están a veinticinco minutos en coche del domicilio de Helena.',
+        'El sistema de control de acceso de las oficinas de PulseFit registra la entrada de Lucía Soto a las 19:02 y su salida a las 00:45, sin registrar ninguna salida intermedia. No obstante, el lector de tarjeta solo controla la puerta principal: las oficinas tienen una salida trasera sin lector, por la que se puede entrar y salir sin dejar registro. Las oficinas están a veinticinco minutos en coche del domicilio de Helena.',
       relatedSuspectIds: ['lucia'],
     },
     {
@@ -319,8 +323,28 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
       title: 'Declaración ampliada de Diego Marín',
       summary: 'Lo que realmente vio esa noche.',
       content:
-        'Confrontado con las publicaciones de @verdad_pulsefit, Diego Marín admite ser el autor de la cuenta anónima, pero niega rotundamente tener relación con la muerte de Helena. Aporta un detalle que no había mencionado antes: poco antes de las 00:00, vio salir corriendo del edificio por la puerta de servicio a una mujer con una gabardina clara, que se alejó a pie en dirección a la calle principal.',
-      relatedSuspectIds: ['diego', 'claudia'],
+        'Confrontado con las publicaciones de @verdad_pulsefit, Diego Marín admite ser el autor de la cuenta anónima, pero niega rotundamente tener relación con la muerte de Helena. Aporta un detalle que no había mencionado antes: poco antes de las 00:00, vio salir corriendo del edificio por la puerta de servicio a una mujer con una gabardina clara, que se alejó a pie en dirección a la calle principal. No pudo verle la cara.',
+      relatedSuspectIds: ['diego', 'claudia', 'lucia'],
+    },
+    {
+      id: 'e19',
+      phase: 2,
+      category: 'testimonio',
+      title: 'Declaración de una compañera de oficina de Lucía',
+      summary: 'Un hueco en la coartada de Lucía Soto.',
+      content:
+        'Una compañera que trabajaba esa noche en las oficinas de PulseFit declara que dejó de ver a Lucía en su puesto desde aproximadamente las 23:00 hasta cerca de la medianoche; dio por hecho que estaba "en alguna sala de reuniones". Comenta, sin darle importancia, que Lucía suele llevar una gabardina de color claro y que esa noche la tenía consigo.',
+      relatedSuspectIds: ['lucia'],
+    },
+    {
+      id: 'e20',
+      phase: 3,
+      category: 'fisico',
+      title: 'Objeto personal hallado en el ático',
+      summary: 'Una acreditación de PulseFit a nombre de Lucía Soto.',
+      content:
+        'Entre los objetos recogidos en el salón del ático de Helena aparece una acreditación de empleada de PulseFit a nombre de Lucía Soto. La cinta presenta una capa de polvo y no es posible datar con precisión cuándo quedó allí. Consta que Lucía acudía con frecuencia al domicilio de Helena por motivos de trabajo, también en los días previos al crimen.',
+      relatedSuspectIds: ['lucia'],
     },
     {
       id: 'e18',
@@ -353,6 +377,11 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
       time: '22:50',
       phase: 1,
       label: 'Iván Roces envía mensajes amenazantes a Helena, que no responde.',
+    },
+    {
+      time: '23:00',
+      phase: 2,
+      label: 'Una compañera deja de ver a Lucía Soto en su puesto de la oficina (hasta cerca de medianoche).',
     },
     {
       time: '23:15',
@@ -407,16 +436,23 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
   ],
   solution: {
     guiltySuspectId: 'claudia',
-    validKeyEvidenceIds: ['e16', 'e08', 'e18', 'e17', 'e07', 'e05'],
+    // Imprescindible: la tarjeta maestra de socio (E16) es lo único que sitúa a la
+    // asesina entrando sin ser vista, y solo Helena y Claudia tenían una.
+    requiredKeyEvidenceIds: ['e16'],
+    // Apoyo: hace falta sostener móvil y oportunidad con al menos dos de estas.
+    supportingKeyEvidenceIds: ['e07', 'e08', 'e18', 'e05'],
+    minSupporting: 2,
     explanation: `Claudia Ferrer es la responsable de la muerte de Helena Vidal.
 
-Tras descubrir el desvío de 180.000€ (auditoría interna, prueba E08), Helena decidió confrontarla en persona esa misma noche antes de denunciarla legalmente y hacerlo público al día siguiente, como anunció a su abogado en el mensaje de voz de las 23:15 (E18) y como ya le había advertido por escrito a la propia Claudia esa tarde (E05).
+POR QUÉ CLAUDIA
+Móvil: la auditoría interna (E08) destapó que Claudia llevaba dos años desviando 180.000€ de PulseFit. Helena la firmó tres días antes y esa misma noche pensaba denunciarla y contarlo en directo, como dejó dicho a su abogado a las 23:15 (E18) y como ya había avisado a la propia Claudia esa tarde (E05).
+Oportunidad: alguien entró por la puerta de servicio a las 23:38 con una tarjeta maestra de socio (E16). Solo existen dos copias: la de Helena y la de Claudia. Además, el móvil de Claudia estuvo conectado a antenas de Chamberí esa noche (E07), desmintiendo su coartada de "estar sola en casa". El forcejeo quedó grabado en la última story de Helena (E03) y terminó con un golpe en la cabeza y la caída.
 
-Claudia entró al edificio por la puerta de servicio a las 23:38 usando su tarjeta maestra de socia (E16), la única alternativa a la de Helena. Su teléfono confirma que estuvo en la zona de Chamberí esa noche, lejos de la coartada de "quedarse en casa" que ella misma dio (E07). La discusión se grabó parcialmente en la última story en directo de Helena (E03): el forcejeo terminó con un golpe en la cabeza y la caída desde el balcón.
+POR QUÉ NO LUCÍA, AUNQUE LO PAREZCA
+Lucía Soto es el señuelo perfecto: tenía un motivo real (es avalista de una deuda de 95.000€ de Helena, E10), su coartada de la oficina tiene un agujero porque hay una salida trasera sin control (E14) y una compañera dejó de verla durante la franja del crimen (E19), posee una gabardina clara como la que describió el testigo (E19, E17) e incluso apareció una acreditación suya en el ático (E20). Pero Lucía NO tiene una tarjeta maestra de socio: no pudo ser quien entró por la puerta de servicio a las 23:38. Su acreditación llevaba allí días —acudía a casa de Helena a trabajar— y la gabardina clara es una coincidencia: muchas personas tienen una.
 
-Diego Marín, el vecino, vio salir corriendo a una mujer con gabardina clara por esa misma puerta de servicio justo después de la hora del crimen (E17): no es el asesino, sino un acosador anónimo y testigo involuntario.
-
-Los otros tres sospechosos —Marcos, Iván y Lucía— tenían motivos reales, pero sus coartadas resisten la verificación cruzada con pruebas materiales independientes: el control de pasaportes del aeropuerto (E15), el registro y los testigos del gimnasio (E13), y la tarjeta de fichaje de la oficina (E14).`,
+LOS DEMÁS
+Diego Marín era el autor de la cuenta anónima de acoso y un testigo incómodo (E17), pero no la mató. Marcos (control de pasaportes, E15) e Iván (registro y testigos del gimnasio, E13) tienen coartadas verificadas de forma independiente.`,
   },
 }
 

@@ -4,6 +4,8 @@ import { useState, useTransition } from 'react'
 import { resetAccusationAction, submitAccusationAction } from '@/lib/actions'
 import type { PublicGameState } from '@/lib/game'
 
+const MIN_EVIDENCE = 2
+
 export default function AccusationView({
   code,
   state,
@@ -14,9 +16,15 @@ export default function AccusationView({
   onResolved: (next: PublicGameState) => void
 }) {
   const [suspectId, setSuspectId] = useState('')
-  const [keyEvidenceId, setKeyEvidenceId] = useState('')
+  const [keyEvidenceIds, setKeyEvidenceIds] = useState<string[]>([])
   const [motive, setMotive] = useState('')
   const [isPending, startTransition] = useTransition()
+
+  function toggleEvidence(id: string) {
+    setKeyEvidenceIds((curr) =>
+      curr.includes(id) ? curr.filter((e) => e !== id) : [...curr, id]
+    )
+  }
 
   if (state.accusation) {
     const { correct, explanation, guiltySuspectName } = state.accusation
@@ -38,10 +46,18 @@ export default function AccusationView({
           <h2 className="font-medium text-lg">
             {correct ? 'Caso resuelto correctamente.' : 'La acusación no es correcta.'}
           </h2>
-          <p className="text-sm text-neutral-400 mt-1">
-            La persona responsable era{' '}
-            <span className="text-neutral-200 font-medium">{guiltySuspectName}</span>.
-          </p>
+          {correct ? (
+            <p className="text-sm text-neutral-400 mt-1">
+              La persona responsable era{' '}
+              <span className="text-neutral-200 font-medium">{guiltySuspectName}</span>.
+            </p>
+          ) : (
+            <p className="text-sm text-neutral-400 mt-1">
+              Revisa tanto a quién señalas como las pruebas en las que te apoyas: puede que
+              no sean las decisivas, o que te falte alguna. No se revela la solución para
+              que puedas seguir investigando.
+            </p>
+          )}
         </div>
 
         {!correct && (
@@ -70,9 +86,13 @@ export default function AccusationView({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!suspectId || !keyEvidenceId) return
+    if (!suspectId || keyEvidenceIds.length < MIN_EVIDENCE) return
     startTransition(async () => {
-      const next = await submitAccusationAction(code, { suspectId, keyEvidenceId, motive })
+      const next = await submitAccusationAction(code, {
+        suspectId,
+        keyEvidenceIds,
+        motive,
+      })
       if (next) onResolved(next)
     })
   }
@@ -113,21 +133,38 @@ export default function AccusationView({
       </div>
 
       <div>
-        <h2 className="text-sm uppercase tracking-wide text-neutral-500 mb-3">
-          ¿Cuál es la prueba decisiva?
+        <h2 className="text-sm uppercase tracking-wide text-neutral-500 mb-1">
+          ¿En qué pruebas se sostiene la acusación?
         </h2>
-        <select
-          value={keyEvidenceId}
-          onChange={(e) => setKeyEvidenceId(e.target.value)}
-          className="w-full bg-neutral-900 border border-neutral-700 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:border-amber-600"
-        >
-          <option value="">Selecciona una prueba…</option>
-          {state.unlockedEvidence.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.title}
-            </option>
-          ))}
-        </select>
+        <p className="text-xs text-neutral-500 mb-3">
+          Marca todas las pruebas decisivas que demuestran tu teoría. Una sola no basta:
+          necesitas combinar móvil y oportunidad. ({keyEvidenceIds.length} seleccionada
+          {keyEvidenceIds.length === 1 ? '' : 's'})
+        </p>
+        <div className="space-y-2">
+          {state.unlockedEvidence.map((e) => {
+            const checked = keyEvidenceIds.includes(e.id)
+            return (
+              <label
+                key={e.id}
+                className={`flex items-start gap-3 case-paper rounded-lg p-3 cursor-pointer transition-colors ${
+                  checked ? 'border-amber-600' : ''
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggleEvidence(e.id)}
+                  className="accent-amber-600 mt-0.5"
+                />
+                <span>
+                  <span className="font-medium text-sm">{e.title}</span>
+                  <span className="block text-xs text-neutral-500">{e.summary}</span>
+                </span>
+              </label>
+            )
+          })}
+        </div>
       </div>
 
       <div>
@@ -145,7 +182,7 @@ export default function AccusationView({
 
       <button
         type="submit"
-        disabled={!suspectId || !keyEvidenceId || isPending}
+        disabled={!suspectId || keyEvidenceIds.length < MIN_EVIDENCE || isPending}
         className="bg-red-700 hover:bg-red-600 disabled:opacity-40 text-white font-medium px-5 py-2.5 rounded-md transition-colors"
       >
         {isPending ? 'Presentando acusación…' : 'Presentar acusación final'}
