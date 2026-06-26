@@ -52,28 +52,63 @@ export default function InvestigationBoard({
   const readCount = state.unlockedEvidence.filter((e) =>
     state.readEvidenceIds.includes(e.id)
   ).length
+  const remaining = state.unlockedEvidence.length - readCount
 
   return (
     <main className="flex-1 flex flex-col">
       <header className="border-b border-neutral-800 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="flex items-center gap-3">
           <h1 className="font-medium">{state.title}</h1>
-          <p className="text-xs text-neutral-500">
-            Expediente <span className="font-mono text-amber-500">{code}</span> · Fase{' '}
-            {state.currentPhase} de {state.totalPhases} · {readCount}/
-            {state.unlockedEvidence.length} pruebas revisadas
-          </p>
+          <div className="flex items-center gap-1.5">
+            {Array.from({ length: state.totalPhases }, (_, i) => i + 1).map((phase) => (
+              <span
+                key={phase}
+                title={`Fase ${phase}`}
+                className={`w-2.5 h-2.5 rounded-full ${
+                  phase < state.currentPhase
+                    ? 'bg-amber-600'
+                    : phase === state.currentPhase
+                      ? 'bg-amber-500 ring-2 ring-amber-500/30'
+                      : 'bg-neutral-700'
+                }`}
+              />
+            ))}
+          </div>
         </div>
-        {state.canAdvancePhase && (
+        <p className="text-xs text-neutral-500">
+          Expediente <span className="font-mono text-amber-500">{code}</span> · Fase{' '}
+          {state.currentPhase} de {state.totalPhases} · {readCount}/
+          {state.unlockedEvidence.length} pruebas revisadas
+        </p>
+      </header>
+
+      {state.canAdvancePhase && (
+        <div className="bg-amber-600 text-black px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm font-medium">
+            Has revisado todas las pruebas de la Fase {state.currentPhase}. Hay más
+            información esperando.
+          </p>
           <button
             onClick={handleAdvancePhase}
             disabled={isPending}
-            className="bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-black text-sm font-medium px-4 py-2 rounded-md transition-colors"
+            className="bg-black/90 hover:bg-black disabled:opacity-50 text-amber-400 text-sm font-medium px-4 py-2 rounded-md transition-colors whitespace-nowrap"
           >
-            Avanzar investigación →
+            {isPending ? 'Avanzando…' : 'Avanzar investigación →'}
           </button>
-        )}
-      </header>
+        </div>
+      )}
+      {!state.canAdvancePhase && state.currentPhase < state.totalPhases && remaining > 0 && (
+        <div className="bg-neutral-900 border-b border-neutral-800 px-6 py-2.5">
+          <p className="text-xs text-neutral-400">
+            Te quedan <span className="text-amber-500 font-medium">{remaining}</span>{' '}
+            {remaining === 1 ? 'prueba' : 'pruebas'} por abrir en la pestaña{' '}
+            <button onClick={() => setTab('pruebas')} className="underline hover:text-amber-500">
+              Pruebas
+            </button>{' '}
+            para desbloquear la Fase {state.currentPhase + 1}.
+          </p>
+        </div>
+      )}
 
       <nav className="border-b border-neutral-800 px-6 flex gap-1 overflow-x-auto text-sm">
         {(
@@ -158,6 +193,10 @@ export default function InvestigationBoard({
 
         {tab === 'pruebas' && (
           <div className="space-y-3">
+            <p className="text-sm text-neutral-400">
+              Fase {state.currentPhase} de {state.totalPhases} · has revisado {readCount} de{' '}
+              {state.unlockedEvidence.length} pruebas disponibles hasta ahora.
+            </p>
             {state.unlockedEvidence.map((evidence) => {
               const isRead = state.readEvidenceIds.includes(evidence.id)
               const isOpen = openEvidenceId === evidence.id
@@ -189,10 +228,14 @@ export default function InvestigationBoard({
                 </div>
               )
             })}
-            {!state.canAdvancePhase && state.currentPhase < state.totalPhases && (
-              <p className="text-xs text-neutral-500 pt-2">
-                Revisa todas las pruebas de esta fase para desbloquear la siguiente.
-              </p>
+            {state.canAdvancePhase && (
+              <button
+                onClick={handleAdvancePhase}
+                disabled={isPending}
+                className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-black font-medium px-5 py-3 rounded-lg transition-colors mt-2"
+              >
+                {isPending ? 'Avanzando…' : `Avanzar a la Fase ${state.currentPhase + 1} →`}
+              </button>
             )}
           </div>
         )}
@@ -200,7 +243,24 @@ export default function InvestigationBoard({
         {tab === 'notas' && <NotesPanel code={code} initialNotes={state.notes} />}
 
         {tab === 'acusacion' && (
-          <AccusationView code={code} state={state} onResolved={setState} />
+          <div className="space-y-5">
+            {!state.accusation && state.currentPhase < state.totalPhases && (
+              <div className="case-paper rounded-lg p-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-neutral-400">
+                  Estás en la Fase {state.currentPhase} de {state.totalPhases}: aún hay
+                  pruebas sin descubrir. Puedes acusar ya, pero te faltarán algunas de las
+                  pruebas decisivas en la lista.
+                </p>
+                <button
+                  onClick={() => setTab('pruebas')}
+                  className="border border-neutral-600 hover:border-amber-600 hover:text-amber-500 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap"
+                >
+                  Seguir investigando
+                </button>
+              </div>
+            )}
+            <AccusationView code={code} state={state} onResolved={setState} />
+          </div>
         )}
       </div>
     </main>
