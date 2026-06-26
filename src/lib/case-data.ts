@@ -36,6 +36,12 @@ export interface CaseSolution {
   explanation: string
 }
 
+export interface TimelineEvent {
+  time: string
+  phase: 1 | 2 | 3
+  label: string
+}
+
 export interface CaseData {
   title: string
   tagline: string
@@ -49,6 +55,8 @@ export interface CaseData {
   }
   suspects: Suspect[]
   evidence: Evidence[]
+  timeline: TimelineEvent[]
+  hints: string[]
   solution: CaseSolution
 }
 
@@ -324,6 +332,78 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
         '"Necesito que prepares los papeles de la denuncia contra Claudia para mañana a primera hora, lo de la auditoría y las transferencias. Pero antes quiero decírselo a la cara, esta misma noche. Se merece saber que esto se acaba aquí, antes de que lo cuente en directo."',
       relatedSuspectIds: ['claudia'],
     },
+  ],
+  timeline: [
+    {
+      time: '18:32',
+      phase: 2,
+      label: 'Helena avisa por mensaje a Claudia Ferrer de que "mañana lo cuenta todo".',
+    },
+    {
+      time: '19:02',
+      phase: 2,
+      label: 'Lucía Soto ficha su entrada en las oficinas de PulseFit.',
+    },
+    {
+      time: '22:00',
+      phase: 2,
+      label: 'Iván Roces empieza su clase nocturna en el gimnasio (termina hacia las 00:20).',
+    },
+    {
+      time: '22:50',
+      phase: 1,
+      label: 'Iván Roces envía mensajes amenazantes a Helena, que no responde.',
+    },
+    {
+      time: '23:15',
+      phase: 3,
+      label: 'Helena deja un mensaje de voz a su abogado pidiéndole preparar una denuncia.',
+    },
+    {
+      time: '23:15',
+      phase: 2,
+      label: 'El móvil de Claudia Ferrer empieza a conectar con antenas de Chamberí (hasta las 00:20).',
+    },
+    {
+      time: '23:38',
+      phase: 3,
+      label: 'Una tarjeta maestra de socio de PulseFit abre la puerta de servicio del edificio.',
+    },
+    {
+      time: '23:40',
+      phase: 1,
+      label: 'Comienza la horquilla de la hora de la muerte según la autopsia (hasta las 00:10).',
+    },
+    {
+      time: '23:50',
+      phase: 1,
+      label: 'Un vecino oye voces alteradas y un golpe en el ático de Helena.',
+    },
+    {
+      time: '23:52',
+      phase: 1,
+      label: 'La retransmisión en directo de Helena se corta de golpe.',
+    },
+    {
+      time: '00:00',
+      phase: 3,
+      label: 'Diego Marín ve salir a una mujer con gabardina clara por la puerta de servicio.',
+    },
+    {
+      time: '00:45',
+      phase: 2,
+      label: 'Lucía Soto ficha su salida de las oficinas de PulseFit.',
+    },
+    {
+      time: '00:47',
+      phase: 2,
+      label: 'Marcos Vidal pasa el control de pasaportes en el aeropuerto de Madrid.',
+    },
+  ],
+  hints: [
+    'Empieza por la autopsia: el golpe en la cabeza se produjo ANTES de la caída, así que no fue ni un accidente ni un suicidio. El portero no vio entrar a nadie por el portal principal… pero hay una puerta de servicio sin cámara. La pregunta clave es cómo entró el culpable sin ser visto.',
+    'Casi todos tienen un motivo. La pregunta útil no es "¿quién querría hacerlo?" sino "¿quién pudo?". Separa las coartadas que se apoyan en un registro independiente (control de pasaportes, registro del gimnasio, fichaje de la oficina) de las que se sostienen solo en la palabra del propio sospechoso.',
+    'Cruza dos cosas: quién estuvo físicamente cerca del edificio esa noche y quién tenía una forma de entrar sin ser visto. Y desconfía de los señuelos: el sospechoso con el comportamiento más turbio o el motivo más escandaloso no tiene por qué ser quien la empujó.',
   ],
   solution: {
     guiltySuspectId: 'claudia',

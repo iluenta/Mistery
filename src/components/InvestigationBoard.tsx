@@ -10,7 +10,7 @@ import type { PublicGameState } from '@/lib/game'
 import type { Evidence, EvidenceCategory } from '@/lib/case-data'
 import AccusationView from './AccusationView'
 
-type Tab = 'briefing' | 'sospechosos' | 'pruebas' | 'notas' | 'acusacion'
+type Tab = 'briefing' | 'sospechosos' | 'pruebas' | 'cronologia' | 'notas' | 'acusacion'
 
 const CATEGORY_LABEL: Record<EvidenceCategory, string> = {
   forense: 'Forense',
@@ -31,15 +31,26 @@ export default function InvestigationBoard({
   const [tab, setTab] = useState<Tab>('briefing')
   const [isPending, startTransition] = useTransition()
   const [openEvidenceId, setOpenEvidenceId] = useState<string | null>(null)
+  const [showHints, setShowHints] = useState(false)
 
-  function openEvidence(evidence: Evidence) {
-    setOpenEvidenceId((curr) => (curr === evidence.id ? null : evidence.id))
-    if (!state.readEvidenceIds.includes(evidence.id)) {
+  function markRead(evidenceId: string) {
+    if (!state.readEvidenceIds.includes(evidenceId)) {
       startTransition(async () => {
-        const next = await markEvidenceReadAction(code, evidence.id)
+        const next = await markEvidenceReadAction(code, evidenceId)
         if (next) setState(next)
       })
     }
+  }
+
+  function openEvidence(evidence: Evidence) {
+    setOpenEvidenceId((curr) => (curr === evidence.id ? null : evidence.id))
+    markRead(evidence.id)
+  }
+
+  function jumpToEvidence(evidenceId: string) {
+    setTab('pruebas')
+    setOpenEvidenceId(evidenceId)
+    markRead(evidenceId)
   }
 
   function handleAdvancePhase() {
@@ -110,12 +121,36 @@ export default function InvestigationBoard({
         </div>
       )}
 
+      {state.hints.length > 0 && (
+        <div className="border-b border-neutral-800 px-6 py-2">
+          <button
+            onClick={() => setShowHints((v) => !v)}
+            className="text-xs text-neutral-500 hover:text-amber-500 transition-colors"
+          >
+            {showHints
+              ? '▾ Ocultar pistas de investigación'
+              : '▸ ¿Atascado? Ver pistas de investigación'}
+          </button>
+          {showHints && (
+            <div className="mt-2 space-y-2">
+              {state.hints.map((hint, i) => (
+                <div key={i} className="case-paper rounded-lg p-3">
+                  <p className="text-xs text-amber-500/80 mb-1">Pista · Fase {i + 1}</p>
+                  <p className="text-sm text-neutral-300 leading-relaxed">{hint}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <nav className="border-b border-neutral-800 px-6 flex gap-1 overflow-x-auto text-sm">
         {(
           [
             ['briefing', 'Resumen'],
             ['sospechosos', 'Sospechosos'],
             ['pruebas', 'Pruebas'],
+            ['cronologia', 'Cronología'],
             ['notas', 'Notas'],
             ['acusacion', 'Acusación'],
           ] as [Tab, string][]
@@ -186,6 +221,30 @@ export default function InvestigationBoard({
                   <span className="text-neutral-500">Posible motivo: </span>
                   {s.motiveHint}
                 </p>
+                {(() => {
+                  const related = state.unlockedEvidence.filter((e) =>
+                    e.relatedSuspectIds.includes(s.id)
+                  )
+                  if (related.length === 0) return null
+                  return (
+                    <div className="mt-3 pt-3 border-t border-neutral-800">
+                      <p className="text-xs text-neutral-500 mb-1.5">
+                        Pruebas del expediente que la mencionan
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {related.map((e) => (
+                          <button
+                            key={e.id}
+                            onClick={() => jumpToEvidence(e.id)}
+                            className="text-xs border border-neutral-700 hover:border-amber-600 hover:text-amber-500 rounded px-2 py-1 transition-colors"
+                          >
+                            {e.title}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
             ))}
           </div>
@@ -221,8 +280,28 @@ export default function InvestigationBoard({
                     <span className="text-neutral-500 text-sm">{isOpen ? '−' : '+'}</span>
                   </button>
                   {isOpen && (
-                    <div className="px-4 pb-4 text-sm text-neutral-300 leading-relaxed whitespace-pre-line border-t border-neutral-800 pt-3">
-                      {evidence.content}
+                    <div className="px-4 pb-4 border-t border-neutral-800 pt-3">
+                      <div className="text-sm text-neutral-300 leading-relaxed whitespace-pre-line">
+                        {evidence.content}
+                      </div>
+                      {evidence.relatedSuspectIds.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-neutral-800 flex flex-wrap items-center gap-1.5">
+                          <span className="text-xs text-neutral-500">Relacionada con:</span>
+                          {evidence.relatedSuspectIds.map((sid) => {
+                            const sus = state.suspects.find((s) => s.id === sid)
+                            if (!sus) return null
+                            return (
+                              <button
+                                key={sid}
+                                onClick={() => setTab('sospechosos')}
+                                className="text-xs border border-neutral-700 hover:border-amber-600 hover:text-amber-500 rounded px-2 py-1 transition-colors"
+                              >
+                                {sus.name}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -237,6 +316,28 @@ export default function InvestigationBoard({
                 {isPending ? 'Avanzando…' : `Avanzar a la Fase ${state.currentPhase + 1} →`}
               </button>
             )}
+          </div>
+        )}
+
+        {tab === 'cronologia' && (
+          <div className="space-y-4">
+            <p className="text-sm text-neutral-400">
+              Línea temporal de la noche del crimen. Se va completando a medida que avanzas
+              en la investigación.
+            </p>
+            <div className="space-y-2">
+              {state.timeline.map((ev, i) => (
+                <div
+                  key={i}
+                  className="case-paper rounded-lg p-3 flex gap-3 items-baseline"
+                >
+                  <span className="font-mono text-amber-500 text-sm shrink-0 w-12">
+                    {ev.time}
+                  </span>
+                  <span className="text-sm text-neutral-300 leading-relaxed">{ev.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

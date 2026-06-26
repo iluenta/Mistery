@@ -1,4 +1,4 @@
-import { CASE, type Evidence } from './case-data'
+import { CASE, type Evidence, type TimelineEvent } from './case-data'
 import { getGameRow, insertGameRow, updateGameRow } from './db'
 
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789' // sin 0/O/1/I/L para evitar confusiones
@@ -44,6 +44,8 @@ export interface PublicGameState {
   unlockedEvidence: Evidence[]
   readEvidenceIds: string[]
   canAdvancePhase: boolean
+  timeline: TimelineEvent[]
+  hints: string[]
   notes: string
   accusation: PublicAccusation | null
 }
@@ -73,6 +75,8 @@ export function getPublicState(code: string): PublicGameState | null {
     unlockedEvidence,
     readEvidenceIds,
     canAdvancePhase: allCurrentRead && row.current_phase < TOTAL_PHASES,
+    timeline: CASE.timeline.filter((t) => t.phase <= row.current_phase),
+    hints: CASE.hints.slice(0, row.current_phase),
     notes: row.notes,
     accusation,
   }
