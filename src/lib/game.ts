@@ -101,6 +101,12 @@ export function saveNotes(code: string, notes: string) {
   updateGameRow(code, { notes })
 }
 
+export function resetAccusation(code: string) {
+  const row = getGameRow(code)
+  if (!row) throw new Error('Expediente no encontrado')
+  updateGameRow(code, { accusation: null })
+}
+
 export function submitAccusation(
   code: string,
   payload: { suspectId: string; keyEvidenceId: string; motive: string }

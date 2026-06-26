@@ -5,6 +5,7 @@ import {
   createGame,
   getPublicState,
   markEvidenceRead,
+  resetAccusation,
   saveNotes,
   submitAccusation,
   type PublicGameState,
@@ -38,5 +39,10 @@ export async function submitAccusationAction(
   payload: { suspectId: string; keyEvidenceId: string; motive: string }
 ): Promise<PublicGameState | null> {
   submitAccusation(code, payload)
+  return getPublicState(code)
+}
+
+export async function resetAccusationAction(code: string): Promise<PublicGameState | null> {
+  resetAccusation(code)
   return getPublicState(code)
 }

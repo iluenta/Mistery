@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { submitAccusationAction } from '@/lib/actions'
+import { resetAccusationAction, submitAccusationAction } from '@/lib/actions'
 import type { PublicGameState } from '@/lib/game'
 
 export default function AccusationView({
@@ -20,6 +20,14 @@ export default function AccusationView({
 
   if (state.accusation) {
     const { correct, explanation, guiltySuspectName } = state.accusation
+
+    function handleRetry() {
+      startTransition(async () => {
+        const next = await resetAccusationAction(code)
+        if (next) onResolved(next)
+      })
+    }
+
     return (
       <div className="space-y-5">
         <div
@@ -35,14 +43,27 @@ export default function AccusationView({
             <span className="text-neutral-200 font-medium">{guiltySuspectName}</span>.
           </p>
         </div>
-        <section className="case-paper rounded-lg p-6">
-          <h3 className="text-sm uppercase tracking-wide text-neutral-500 mb-3">
-            Epílogo del caso
-          </h3>
-          <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-line">
-            {explanation}
-          </p>
-        </section>
+
+        {!correct && (
+          <button
+            onClick={handleRetry}
+            disabled={isPending}
+            className="border border-neutral-600 hover:border-amber-600 hover:text-amber-500 disabled:opacity-50 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+          >
+            {isPending ? 'Reabriendo expediente…' : 'Volver a intentarlo'}
+          </button>
+        )}
+
+        {correct && (
+          <section className="case-paper rounded-lg p-6">
+            <h3 className="text-sm uppercase tracking-wide text-neutral-500 mb-3">
+              Epílogo del caso
+            </h3>
+            <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-line">
+              {explanation}
+            </p>
+          </section>
+        )}
       </div>
     )
   }
