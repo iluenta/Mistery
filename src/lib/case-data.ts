@@ -90,7 +90,7 @@ El primer aviso lo da un vecino tras oír un golpe seco hacia la medianoche. Cua
 
 Lo que en un primer momento parecía un trágico accidente —o incluso un suicidio, dada la presión mediática que arrastraba Helena— empieza a desmoronarse en cuanto el forense examina el cuerpo. Te han llamado a ti, como investigador o investigadora independiente contratada por la familia, para revisar el expediente antes de que el caso se cierre como accidente.
 
-Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones de quienes estuvieron cerca de Helena en sus últimas semanas. Cinco personas tenían motivos para querer que Helena no contara lo que sabía, o lo que sentía. Solo una la empujó.`,
+Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones de quienes estuvieron cerca de Helena en sus últimas semanas. Siete personas de su entorno tenían motivos para querer que Helena no contara lo que sabía, o lo que sentía. Solo una la empujó.`,
   victim: {
     name: 'Helena Vidal Soler',
     age: 34,
@@ -168,6 +168,11 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
           evidenceId: 'e18',
           reaction:
             '"¿Una denuncia? No tenía ni idea de que Helena fuera a hacer algo así. A mí no me dijo nada." (Pero en su mensaje de las 18:32, Helena se lo había anunciado directamente.)',
+        },
+        {
+          evidenceId: 'e26',
+          reaction:
+            '"¿Nadia ha dicho eso? Está histérica, se inventa cosas para quitarse el foco de encima. No hay ningún desvío." (Se tensa de forma evidente.)',
         },
       ],
     },
@@ -268,6 +273,78 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
           evidenceId: 'e17',
           reaction:
             '"Está bien, sí: la cuenta era mía. La odiaba por la farsa que vendía, pero yo no la toqué. Y lo que vi es verdad: una mujer con gabardina clara salió corriendo por la puerta de servicio poco antes de medianoche. No le vi la cara."',
+        },
+      ],
+    },
+    {
+      id: 'tomas',
+      name: 'Tomás Belmonte',
+      age: 39,
+      relation: 'Cofundador y director de tecnología de PulseFit',
+      initial: 'T',
+      statement:
+        '"Helena y yo levantamos PulseFit juntos, pero llevábamos meses enfrentados por el rumbo del producto. ¿Que quería echarme? Que lo intentara. Esa noche estuve en una cena del sector, hay cien testigos y fotos con hora."',
+      alibiClaim:
+        'Dice que pasó la noche en una cena de tecnología con mucha gente y que hay fotos con marca de tiempo.',
+      motiveHint:
+        'Helena había preparado en secreto su despido y una demanda por filtrar la tecnología de PulseFit a una empresa rival. Si ella seguía adelante, Tomás lo perdía todo: puesto, acciones y reputación.',
+      relatedEvidenceIds: ['e21', 'e22', 'e23'],
+      responses: [
+        {
+          evidenceId: 'e21',
+          reaction:
+            '"¿Esos papeles de despido? Sí, me enteré de que Helena los estaba preparando y me hervía la sangre. Pero pelear por la empresa en los juzgados no es matar a nadie."',
+        },
+        {
+          evidenceId: 'e22',
+          reaction:
+            '"Tengo llave de su piso, de cuando había confianza entre nosotros, y nunca se la devolví. Pero esa llave abre su puerta, no el portal ni la entrada de servicio del edificio."',
+        },
+        {
+          evidenceId: 'e23',
+          reaction:
+            '"Salí de la cena pasadas las once y media y cogí un VTC al otro lado de la ciudad. Está en la aplicación: estuve lejísimos de Chamberí toda la noche."',
+        },
+        {
+          evidenceId: 'e16',
+          reaction:
+            '"¿Tarjeta maestra de socio? Esa la tenían las administradoras, Helena y Claudia, por el control de finanzas y accesos. Los demás socios no pintábamos nada ahí."',
+        },
+      ],
+    },
+    {
+      id: 'nadia',
+      name: 'Nadia Cuevas',
+      age: 33,
+      relation: 'Directora de marketing y comunicación de PulseFit',
+      initial: 'N',
+      statement:
+        '"Yo construí la imagen de PulseFit, y sí, esa imagen tenía mucho de humo. Si estallaba el escándalo, la culpa iba a caer sobre mí. Pero esa noche acabé en urgencias con un ataque de ansiedad, está todo registrado."',
+      alibiClaim:
+        'Dice que pasó la noche en el servicio de urgencias de un hospital por un ataque de ansiedad, con registro horario.',
+      motiveHint:
+        'Sabía que la marca exageraba sus resultados y temía que el escándalo que se avecinaba —y una posible denuncia de Helena— acabara con su carrera y la señalara como responsable del fraude publicitario.',
+      relatedEvidenceIds: ['e24', 'e25', 'e26'],
+      responses: [
+        {
+          evidenceId: 'e24',
+          reaction:
+            '"Claro que estaba aterrada. Un periodista iba a publicar que los resultados de PulseFit eran mentira, y Helena pensaba echarme a los leones para salvarse ella. Pero tener miedo no es empujar a nadie."',
+        },
+        {
+          evidenceId: 'e25',
+          reaction:
+            '"Llamé a urgencias sobre las once, no podía respirar. Me atendieron y me tuvieron en observación hasta la madrugada. Pregunten en el hospital."',
+        },
+        {
+          evidenceId: 'e26',
+          reaction:
+            '"¿Que si sabía lo del dinero? ...Sospechaba que Claudia se llevaba fondos, sí. Me callé porque le tenía miedo; no quería acabar yo también en su lista." (Mira de reojo, incómoda.)',
+        },
+        {
+          evidenceId: 'e16',
+          reaction:
+            '"Yo soy de marketing, no socia. Nunca he tenido una de esas tarjetas maestras, ni falta que me hacía."',
         },
       ],
     },
@@ -446,7 +523,7 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
       summary: 'Lo que realmente vio esa noche.',
       content:
         'Confrontado con las publicaciones de @verdad_pulsefit, Diego Marín admite ser el autor de la cuenta anónima, pero niega rotundamente tener relación con la muerte de Helena. Aporta un detalle que no había mencionado antes: poco antes de las 00:00, vio salir corriendo del edificio por la puerta de servicio a una mujer con una gabardina clara, que se alejó a pie en dirección a la calle principal. No pudo verle la cara.',
-      relatedSuspectIds: ['diego', 'claudia', 'lucia'],
+      relatedSuspectIds: ['diego', 'claudia', 'lucia', 'nadia'],
     },
     {
       id: 'e19',
@@ -478,6 +555,68 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
         '"Necesito que prepares los papeles de la denuncia contra Claudia para mañana a primera hora, lo de la auditoría y las transferencias. Pero antes quiero decírselo a la cara, esta misma noche. Se merece saber que esto se acaba aquí, antes de que lo cuente en directo."',
       relatedSuspectIds: ['claudia'],
     },
+
+    // AMPLIACIÓN — el círculo de PulseFit (Tomás y Nadia)
+    {
+      id: 'e21',
+      phase: 2,
+      category: 'financiero',
+      title: 'Borrador de despido y demanda contra Tomás Belmonte',
+      summary: 'Helena preparaba apartar a su cofundador.',
+      content:
+        'Entre los documentos de Helena aparece un borrador, fechado dos semanas antes de su muerte, para destituir a Tomás Belmonte como director de tecnología y demandarlo por presunta filtración del algoritmo de entrenamiento de PulseFit a una empresa competidora. De prosperar, Tomás perdería su puesto, buena parte de sus acciones y se enfrentaría a una indemnización millonaria.',
+      relatedSuspectIds: ['tomas'],
+    },
+    {
+      id: 'e22',
+      phase: 2,
+      category: 'testimonio',
+      title: 'Tomás Belmonte conserva una llave del piso de Helena',
+      summary: 'Acceso a la vivienda… pero no al edificio.',
+      content:
+        'Varios empleados confirman que Helena y Tomás fueron pareja años atrás y que él nunca devolvió la llave del ático. Esa llave abre la puerta de la vivienda de Helena, pero no el portal principal (con portero hasta las 22:00) ni la puerta de servicio del edificio, que se controla con tarjeta electrónica.',
+      relatedSuspectIds: ['tomas'],
+    },
+    {
+      id: 'e24',
+      phase: 2,
+      category: 'digital',
+      title: 'Mensajes de Nadia Cuevas sobre el escándalo de marca',
+      summary: 'Pánico ante una exclusiva periodística.',
+      content:
+        'Mensajes recuperados muestran a Nadia Cuevas, directora de marketing, alarmada porque un periodista preparaba un reportaje demostrando que los resultados "milagrosos" de PulseFit estaban falseados. En las conversaciones teme que Helena, para protegerse, la presente públicamente como la única responsable del fraude publicitario.',
+      relatedSuspectIds: ['nadia'],
+    },
+    {
+      id: 'e25',
+      phase: 2,
+      category: 'forense',
+      title: 'Registro de urgencias hospitalarias de Nadia Cuevas',
+      summary: 'Coartada médica de la directora de marketing.',
+      content:
+        'El servicio de urgencias de un hospital de Madrid registra el ingreso de Nadia Cuevas a las 23:09 por un cuadro de ansiedad aguda, con permanencia en observación hasta las 02:30. El horario está respaldado por la ficha de admisión y por el personal sanitario que la atendió.',
+      relatedSuspectIds: ['nadia'],
+    },
+    {
+      id: 'e23',
+      phase: 3,
+      category: 'digital',
+      title: 'Coartada de Tomás: cena del sector y trayecto en VTC',
+      summary: 'Dónde estuvo durante la franja del crimen.',
+      content:
+        'Fotografías con marca de tiempo sitúan a Tomás Belmonte en una cena tecnológica en el sur de Madrid hasta las 23:34. El registro de una aplicación de VTC muestra un trayecto a su nombre desde el restaurante hasta un domicilio del mismo distrito, con llegada a las 00:09. Resulta imposible que estuviera en Chamberí durante la franja de la muerte.',
+      relatedSuspectIds: ['tomas'],
+    },
+    {
+      id: 'e26',
+      phase: 3,
+      category: 'digital',
+      title: 'Lo que Nadia Cuevas callaba sobre las cuentas',
+      summary: 'Sabía del desvío de fondos.',
+      content:
+        'Confrontada con el reportaje, Nadia admite que desde hacía meses sospechaba que Claudia Ferrer desviaba dinero de PulseFit, pero calló por miedo. Su testimonio corrobora que el desvío era real y conocido en la cúpula de la empresa, y que Helena, al auditarlo en persona, se había convertido en una amenaza directa para quien lo orquestaba.',
+      relatedSuspectIds: ['nadia', 'claudia'],
+    },
   ],
   timeline: [
     {
@@ -506,6 +645,11 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
       label: 'Una compañera deja de ver a Lucía Soto en su puesto de la oficina (hasta cerca de medianoche).',
     },
     {
+      time: '23:09',
+      phase: 2,
+      label: 'Nadia Cuevas ingresa en urgencias por un ataque de ansiedad (en observación hasta las 02:30).',
+    },
+    {
       time: '23:15',
       phase: 3,
       label: 'Helena deja un mensaje de voz a su abogado pidiéndole preparar una denuncia.',
@@ -514,6 +658,11 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
       time: '23:15',
       phase: 2,
       label: 'El móvil de Claudia Ferrer empieza a conectar con antenas de Chamberí (hasta las 00:20).',
+    },
+    {
+      time: '23:34',
+      phase: 3,
+      label: 'Tomás Belmonte sigue en una cena del sector en el sur de Madrid; después coge un VTC lejos de Chamberí.',
     },
     {
       time: '23:38',
@@ -580,6 +729,14 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
       { id: 'deuda', label: 'Para librarse de la deuda de la que figuraba como avalista' },
       { id: 'acoso', label: 'Para que no se destapara la cuenta de acoso anónima' },
       { id: 'ruptura', label: 'Despecho y rabia tras la ruptura sentimental' },
+      {
+        id: 'despido-tomas',
+        label: 'Para evitar que lo echaran de la empresa y lo demandaran por filtrar tecnología',
+      },
+      {
+        id: 'fraude-marca',
+        label: 'Para enterrar el escándalo de que los resultados de la marca eran un fraude',
+      },
     ],
     // Imprescindible: la tarjeta maestra de socio (E16) es lo único que sitúa a la
     // asesina entrando sin ser vista, y solo Helena y Claudia tenían una.
@@ -597,7 +754,11 @@ POR QUÉ NO LUCÍA, AUNQUE LO PAREZCA
 Lucía Soto es el señuelo perfecto: tenía un motivo real (es avalista de una deuda de 95.000€ de Helena, E10), su coartada de la oficina tiene un agujero porque hay una salida trasera sin control (E14) y una compañera dejó de verla durante la franja del crimen (E19), posee una gabardina clara como la que describió el testigo (E19, E17) e incluso apareció una acreditación suya en el ático (E20). Pero Lucía NO tiene una tarjeta maestra de socio: no pudo ser quien entró por la puerta de servicio a las 23:38. Su acreditación llevaba allí días —acudía a casa de Helena a trabajar— y la gabardina clara es una coincidencia: muchas personas tienen una.
 
 LOS DEMÁS
-Diego Marín era el autor de la cuenta anónima de acoso y un testigo incómodo (E17), pero no la mató. Marcos (control de pasaportes, E15) e Iván (registro y testigos del gimnasio, E13) tienen coartadas verificadas de forma independiente.`,
+Diego Marín era el autor de la cuenta anónima de acoso y un testigo incómodo (E17), pero no la mató. Marcos (control de pasaportes, E15) e Iván (registro y testigos del gimnasio, E13) tienen coartadas verificadas de forma independiente.
+
+Tomás Belmonte, el cofundador, tenía un motivo de peso —Helena iba a echarlo y demandarlo (E21)— e incluso conservaba una llave del ático (E22). Pero esa llave abre la vivienda, no la puerta de servicio del edificio por la que entró el asesino, y su coartada (cena del sector y trayecto en VTC, E23) está confirmada durante toda la franja del crimen.
+
+Nadia Cuevas temía el escándalo de marca y hasta sabía del desvío de fondos (E24, E26), lo que la hacía sospechosa; pero estuvo ingresada en urgencias desde las 23:09 (E25) y, al no ser socia, tampoco tenía tarjeta para entrar sin ser vista. Su testimonio, de hecho, confirma el móvil real: el desvío de Claudia existía y Helena se había convertido en una amenaza para quien lo orquestaba.`,
   },
 }
 
