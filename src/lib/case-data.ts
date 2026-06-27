@@ -30,10 +30,20 @@ export interface Suspect {
   relatedEvidenceIds: string[]
 }
 
+export interface AccusationAxisOption {
+  id: string
+  label: string
+}
+
 export interface CaseSolution {
   guiltySuspectId: string
-  // La acusación es correcta solo si se señala al culpable Y se aportan TODAS las
-  // pruebas requeridas MÁS al menos `minSupporting` de las pruebas de apoyo.
+  // La acusación final reconstruye la teoría completa del crimen. Para acertar hay que
+  // dar bien las TRES dimensiones (quién, cómo entró y por qué esa noche) Y aportar
+  // las pruebas requeridas más al menos `minSupporting` de las de apoyo.
+  entryMethodId: string
+  motiveId: string
+  entryMethodOptions: AccusationAxisOption[]
+  motiveOptions: AccusationAxisOption[]
   requiredKeyEvidenceIds: string[]
   supportingKeyEvidenceIds: string[]
   minSupporting: number
@@ -436,13 +446,36 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
   ],
   solution: {
     guiltySuspectId: 'claudia',
+    entryMethodId: 'servicio-tarjeta',
+    motiveId: 'denuncia-desvio',
+    entryMethodOptions: [
+      {
+        id: 'servicio-tarjeta',
+        label: 'Por la puerta de servicio, usando una tarjeta maestra de socio',
+      },
+      { id: 'portal', label: 'Por el portal principal, a la vista del portero' },
+      { id: 'dentro', label: 'Ya se encontraba dentro del edificio desde antes' },
+      { id: 'incendios', label: 'Trepando por la escalera de incendios hasta el balcón' },
+      { id: 'llave', label: 'Con una copia de la llave del piso de Helena' },
+    ],
+    motiveOptions: [
+      {
+        id: 'denuncia-desvio',
+        label:
+          'Helena iba a denunciarla por el desvío de fondos y contarlo todo en directo',
+      },
+      { id: 'herencia', label: 'La disputa por la herencia y el 20% de las acciones' },
+      { id: 'deuda', label: 'Para librarse de la deuda de la que figuraba como avalista' },
+      { id: 'acoso', label: 'Para que no se destapara la cuenta de acoso anónima' },
+      { id: 'ruptura', label: 'Despecho y rabia tras la ruptura sentimental' },
+    ],
     // Imprescindible: la tarjeta maestra de socio (E16) es lo único que sitúa a la
     // asesina entrando sin ser vista, y solo Helena y Claudia tenían una.
     requiredKeyEvidenceIds: ['e16'],
     // Apoyo: hace falta sostener móvil y oportunidad con al menos dos de estas.
     supportingKeyEvidenceIds: ['e07', 'e08', 'e18', 'e05'],
     minSupporting: 2,
-    explanation: `Claudia Ferrer es la responsable de la muerte de Helena Vidal.
+    explanation: `Claudia Ferrer mató a Helena Vidal: entró por la puerta de servicio con su tarjeta maestra de socia y la empujó esa misma noche porque Helena iba a denunciarla por el desvío de fondos y contarlo en directo al día siguiente.
 
 POR QUÉ CLAUDIA
 Móvil: la auditoría interna (E08) destapó que Claudia llevaba dos años desviando 180.000€ de PulseFit. Helena la firmó tres días antes y esa misma noche pensaba denunciarla y contarlo en directo, como dejó dicho a su abogado a las 23:15 (E18) y como ya había avisado a la propia Claudia esa tarde (E05).

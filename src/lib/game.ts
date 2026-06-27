@@ -1,4 +1,9 @@
-import { CASE, type Evidence, type TimelineEvent } from './case-data'
+import {
+  CASE,
+  type AccusationAxisOption,
+  type Evidence,
+  type TimelineEvent,
+} from './case-data'
 import { getGameRow, insertGameRow, updateGameRow } from './db'
 
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789' // sin 0/O/1/I/L para evitar confusiones
@@ -24,6 +29,8 @@ export function createGame(): string {
 
 export interface PublicAccusation {
   suspectId: string
+  entryMethodId: string
+  motiveId: string
   keyEvidenceIds: string[]
   motive: string
   correct: boolean
@@ -46,6 +53,10 @@ export interface PublicGameState {
   canAdvancePhase: boolean
   timeline: TimelineEvent[]
   hints: string[]
+  accusationOptions: {
+    entryMethods: AccusationAxisOption[]
+    motives: AccusationAxisOption[]
+  }
   notes: string
   accusation: PublicAccusation | null
 }
@@ -77,6 +88,10 @@ export function getPublicState(code: string): PublicGameState | null {
     canAdvancePhase: allCurrentRead && row.current_phase < TOTAL_PHASES,
     timeline: CASE.timeline.filter((t) => t.phase <= row.current_phase),
     hints: CASE.hints.slice(0, row.current_phase),
+    accusationOptions: {
+      entryMethods: CASE.solution.entryMethodOptions,
+      motives: CASE.solution.motiveOptions,
+    },
     notes: row.notes,
     accusation,
   }
@@ -113,7 +128,13 @@ export function resetAccusation(code: string) {
 
 export function submitAccusation(
   code: string,
-  payload: { suspectId: string; keyEvidenceIds: string[]; motive: string }
+  payload: {
+    suspectId: string
+    entryMethodId: string
+    motiveId: string
+    keyEvidenceIds: string[]
+    motive: string
+  }
 ): PublicAccusation {
   const row = getGameRow(code)
   if (!row) throw new Error('Expediente no encontrado')
@@ -126,6 +147,8 @@ export function submitAccusation(
   ).length
   const correct =
     payload.suspectId === sol.guiltySuspectId &&
+    payload.entryMethodId === sol.entryMethodId &&
+    payload.motiveId === sol.motiveId &&
     hasRequired &&
     supportingCount >= sol.minSupporting
 
@@ -135,6 +158,8 @@ export function submitAccusation(
   // una acusación errónea no debe spoilear la solución.
   const accusation: PublicAccusation = {
     suspectId: payload.suspectId,
+    entryMethodId: payload.entryMethodId,
+    motiveId: payload.motiveId,
     keyEvidenceIds: selected,
     motive: payload.motive,
     correct,

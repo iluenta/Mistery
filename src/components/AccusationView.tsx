@@ -16,6 +16,8 @@ export default function AccusationView({
   onResolved: (next: PublicGameState) => void
 }) {
   const [suspectId, setSuspectId] = useState('')
+  const [entryMethodId, setEntryMethodId] = useState('')
+  const [motiveId, setMotiveId] = useState('')
   const [keyEvidenceIds, setKeyEvidenceIds] = useState<string[]>([])
   const [motive, setMotive] = useState('')
   const [isPending, startTransition] = useTransition()
@@ -53,9 +55,9 @@ export default function AccusationView({
             </p>
           ) : (
             <p className="text-sm text-neutral-400 mt-1">
-              Revisa tanto a quién señalas como las pruebas en las que te apoyas: puede que
-              no sean las decisivas, o que te falte alguna. No se revela la solución para
-              que puedas seguir investigando.
+              Algo de tu teoría no encaja: el responsable, cómo entró, por qué esa noche o
+              las pruebas en las que te apoyas. No se revela qué para que puedas seguir
+              investigando.
             </p>
           )}
         </div>
@@ -84,12 +86,17 @@ export default function AccusationView({
     )
   }
 
+  const ready =
+    !!suspectId && !!entryMethodId && !!motiveId && keyEvidenceIds.length >= MIN_EVIDENCE
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!suspectId || keyEvidenceIds.length < MIN_EVIDENCE) return
+    if (!ready) return
     startTransition(async () => {
       const next = await submitAccusationAction(code, {
         suspectId,
+        entryMethodId,
+        motiveId,
         keyEvidenceIds,
         motive,
       })
@@ -100,7 +107,9 @@ export default function AccusationView({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="case-paper rounded-lg p-4 text-sm text-amber-500/90">
-        Esta es la acusación final. Una vez enviada, no podrás cambiarla.
+        Esta es la acusación final. Reconstruye la teoría completa del crimen: quién lo
+        hizo, cómo entró y por qué esa noche, y respáldala con pruebas. Tienen que encajar
+        las tres cosas.
       </div>
 
       <div>
@@ -127,6 +136,58 @@ export default function AccusationView({
                 <span className="font-medium">{s.name}</span>{' '}
                 <span className="text-neutral-500 text-sm">— {s.relation}</span>
               </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-sm uppercase tracking-wide text-neutral-500 mb-3">
+          ¿Cómo entró en el edificio sin ser visto?
+        </h2>
+        <div className="space-y-2">
+          {state.accusationOptions.entryMethods.map((o) => (
+            <label
+              key={o.id}
+              className={`flex items-start gap-3 case-paper rounded-lg p-3 cursor-pointer transition-colors ${
+                entryMethodId === o.id ? 'border-amber-600' : ''
+              }`}
+            >
+              <input
+                type="radio"
+                name="entry"
+                value={o.id}
+                checked={entryMethodId === o.id}
+                onChange={() => setEntryMethodId(o.id)}
+                className="accent-amber-600 mt-0.5"
+              />
+              <span className="text-sm">{o.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-sm uppercase tracking-wide text-neutral-500 mb-3">
+          ¿Por qué la mató esa misma noche?
+        </h2>
+        <div className="space-y-2">
+          {state.accusationOptions.motives.map((o) => (
+            <label
+              key={o.id}
+              className={`flex items-start gap-3 case-paper rounded-lg p-3 cursor-pointer transition-colors ${
+                motiveId === o.id ? 'border-amber-600' : ''
+              }`}
+            >
+              <input
+                type="radio"
+                name="motiveId"
+                value={o.id}
+                checked={motiveId === o.id}
+                onChange={() => setMotiveId(o.id)}
+                className="accent-amber-600 mt-0.5"
+              />
+              <span className="text-sm">{o.label}</span>
             </label>
           ))}
         </div>
@@ -182,7 +243,7 @@ export default function AccusationView({
 
       <button
         type="submit"
-        disabled={!suspectId || keyEvidenceIds.length < MIN_EVIDENCE || isPending}
+        disabled={!ready || isPending}
         className="bg-red-700 hover:bg-red-600 disabled:opacity-40 text-white font-medium px-5 py-2.5 rounded-md transition-colors"
       >
         {isPending ? 'Presentando acusación…' : 'Presentar acusación final'}

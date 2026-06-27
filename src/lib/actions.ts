@@ -36,7 +36,13 @@ export async function saveNotesAction(code: string, notes: string): Promise<void
 
 export async function submitAccusationAction(
   code: string,
-  payload: { suspectId: string; keyEvidenceIds: string[]; motive: string }
+  payload: {
+    suspectId: string
+    entryMethodId: string
+    motiveId: string
+    keyEvidenceIds: string[]
+    motive: string
+  }
 ): Promise<PublicGameState | null> {
   submitAccusation(code, payload)
   return getPublicState(code)
