@@ -1,16 +1,29 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import {
   advancePhaseAction,
   markEvidenceReadAction,
+  saveBoardAction,
   saveNotesAction,
 } from '@/lib/actions'
 import type { PublicGameState } from '@/lib/game'
-import type { Evidence, EvidenceCategory, Suspect } from '@/lib/case-data'
+import type {
+  Evidence,
+  EvidenceCategory,
+  EvidenceLocation,
+  Suspect,
+} from '@/lib/case-data'
 import AccusationView from './AccusationView'
 
-type Tab = 'briefing' | 'sospechosos' | 'pruebas' | 'cronologia' | 'notas' | 'acusacion'
+type Tab =
+  | 'briefing'
+  | 'sospechosos'
+  | 'pruebas'
+  | 'cronologia'
+  | 'tablero'
+  | 'notas'
+  | 'acusacion'
 
 const CATEGORY_LABEL: Record<EvidenceCategory, string> = {
   forense: 'Forense',
@@ -18,6 +31,39 @@ const CATEGORY_LABEL: Record<EvidenceCategory, string> = {
   financiero: 'Financiero',
   testimonio: 'Testimonio',
   fisico: 'Físico',
+}
+
+// Orden y etiquetas de las "ubicaciones" para la vista mapa de las pruebas.
+const LOCATION_ORDER: EvidenceLocation[] = [
+  'escena',
+  'edificio',
+  'oficina',
+  'comunicaciones',
+  'coartadas',
+  'documentos',
+]
+const LOCATION_LABEL: Record<EvidenceLocation, string> = {
+  escena: 'El ático y la escena',
+  edificio: 'El edificio y sus accesos',
+  oficina: 'Las oficinas de PulseFit',
+  comunicaciones: 'Comunicaciones y rastro digital',
+  coartadas: 'Coartadas y ubicaciones externas',
+  documentos: 'Documentos financieros y legales',
+}
+
+// Tablero de deducción: columnas y ciclo de estados de cada casilla.
+const BOARD_COLUMNS: [string, string][] = [
+  ['movil', 'Móvil'],
+  ['oportunidad', 'Oportunidad'],
+  ['coartada', 'Coartada'],
+  ['sospecha', 'Conclusión'],
+]
+const CELL_CYCLE = ['', 'si', 'no', 'duda'] as const
+const CELL_STYLE: Record<string, { sym: string; cls: string }> = {
+  '': { sym: '·', cls: 'text-neutral-600' },
+  si: { sym: '✓', cls: 'text-emerald-400' },
+  no: { sym: '✗', cls: 'text-red-400' },
+  duda: { sym: '?', cls: 'text-amber-400' },
 }
 
 export default function InvestigationBoard({
@@ -32,6 +78,7 @@ export default function InvestigationBoard({
   const [isPending, startTransition] = useTransition()
   const [openEvidenceId, setOpenEvidenceId] = useState<string | null>(null)
   const [showHints, setShowHints] = useState(false)
+  const [pruebasView, setPruebasView] = useState<'lista' | 'mapa'>('lista')
 
   function markRead(evidenceId: string) {
     if (!state.readEvidenceIds.includes(evidenceId)) {
@@ -151,6 +198,7 @@ export default function InvestigationBoard({
             ['sospechosos', 'Sospechosos'],
             ['pruebas', 'Pruebas'],
             ['cronologia', 'Cronología'],
+            ['tablero', 'Tablero'],
             ['notas', 'Notas'],
             ['acusacion', 'Acusación'],
           ] as [Tab, string][]
@@ -212,61 +260,71 @@ export default function InvestigationBoard({
 
         {tab === 'pruebas' && (
           <div className="space-y-3">
-            <p className="text-sm text-neutral-400">
-              Fase {state.currentPhase} de {state.totalPhases} · has revisado {readCount} de{' '}
-              {state.unlockedEvidence.length} pruebas disponibles hasta ahora.
-            </p>
-            {state.unlockedEvidence.map((evidence) => {
-              const isRead = state.readEvidenceIds.includes(evidence.id)
-              const isOpen = openEvidenceId === evidence.id
-              return (
-                <div key={evidence.id} className="case-paper rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <p className="text-sm text-neutral-400">
+                Fase {state.currentPhase} de {state.totalPhases} · has revisado {readCount}{' '}
+                de {state.unlockedEvidence.length} pruebas disponibles hasta ahora.
+              </p>
+              <div className="flex gap-1 text-xs shrink-0">
+                {(
+                  [
+                    ['lista', 'Lista'],
+                    ['mapa', 'Por ubicación'],
+                  ] as [typeof pruebasView, string][]
+                ).map(([key, label]) => (
                   <button
-                    onClick={() => openEvidence(evidence)}
-                    className="w-full text-left p-4 flex items-start justify-between gap-3"
+                    key={key}
+                    onClick={() => setPruebasView(key)}
+                    className={`px-2.5 py-1 rounded-md border transition-colors ${
+                      pruebasView === key
+                        ? 'border-amber-600 text-amber-500'
+                        : 'border-neutral-700 text-neutral-400 hover:text-neutral-200'
+                    }`}
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase tracking-wide text-amber-500/80 border border-amber-700/40 rounded px-1.5 py-0.5">
-                          {CATEGORY_LABEL[evidence.category]}
-                        </span>
-                        {!isRead && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                        )}
-                      </div>
-                      <p className="font-medium mt-1.5">{evidence.title}</p>
-                      <p className="text-sm text-neutral-500">{evidence.summary}</p>
-                    </div>
-                    <span className="text-neutral-500 text-sm">{isOpen ? '−' : '+'}</span>
+                    {label}
                   </button>
-                  {isOpen && (
-                    <div className="px-4 pb-4 border-t border-neutral-800 pt-3">
-                      <div className="text-sm text-neutral-300 leading-relaxed whitespace-pre-line">
-                        {evidence.content}
-                      </div>
-                      {evidence.relatedSuspectIds.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-neutral-800 flex flex-wrap items-center gap-1.5">
-                          <span className="text-xs text-neutral-500">Relacionada con:</span>
-                          {evidence.relatedSuspectIds.map((sid) => {
-                            const sus = state.suspects.find((s) => s.id === sid)
-                            if (!sus) return null
-                            return (
-                              <button
-                                key={sid}
-                                onClick={() => setTab('sospechosos')}
-                                className="text-xs border border-neutral-700 hover:border-amber-600 hover:text-amber-500 rounded px-2 py-1 transition-colors"
-                              >
-                                {sus.name}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+                ))}
+              </div>
+            </div>
+
+            {pruebasView === 'lista' &&
+              state.unlockedEvidence.map((evidence) => (
+                <EvidenceCard
+                  key={evidence.id}
+                  evidence={evidence}
+                  isRead={state.readEvidenceIds.includes(evidence.id)}
+                  isOpen={openEvidenceId === evidence.id}
+                  onOpen={() => openEvidence(evidence)}
+                  suspects={state.suspects}
+                  onSuspect={() => setTab('sospechosos')}
+                />
+              ))}
+
+            {pruebasView === 'mapa' &&
+              LOCATION_ORDER.map((loc) => {
+                const items = state.unlockedEvidence.filter((e) => e.location === loc)
+                if (items.length === 0) return null
+                return (
+                  <div key={loc} className="space-y-2 pt-1">
+                    <h3 className="text-xs uppercase tracking-wide text-amber-500/80">
+                      {LOCATION_LABEL[loc]}{' '}
+                      <span className="text-neutral-600">· {items.length}</span>
+                    </h3>
+                    {items.map((evidence) => (
+                      <EvidenceCard
+                        key={evidence.id}
+                        evidence={evidence}
+                        isRead={state.readEvidenceIds.includes(evidence.id)}
+                        isOpen={openEvidenceId === evidence.id}
+                        onOpen={() => openEvidence(evidence)}
+                        suspects={state.suspects}
+                        onSuspect={() => setTab('sospechosos')}
+                      />
+                    ))}
+                  </div>
+                )
+              })}
+
             {state.canAdvancePhase && (
               <button
                 onClick={handleAdvancePhase}
@@ -301,6 +359,14 @@ export default function InvestigationBoard({
           </div>
         )}
 
+        {tab === 'tablero' && (
+          <DeductionBoard
+            code={code}
+            suspects={state.suspects}
+            initialBoard={state.board}
+          />
+        )}
+
         {tab === 'notas' && <NotesPanel code={code} initialNotes={state.notes} />}
 
         {tab === 'acusacion' && (
@@ -325,6 +391,170 @@ export default function InvestigationBoard({
         )}
       </div>
     </main>
+  )
+}
+
+function EvidenceCard({
+  evidence,
+  isRead,
+  isOpen,
+  onOpen,
+  suspects,
+  onSuspect,
+}: {
+  evidence: Evidence
+  isRead: boolean
+  isOpen: boolean
+  onOpen: () => void
+  suspects: Suspect[]
+  onSuspect: () => void
+}) {
+  return (
+    <div className="case-paper rounded-lg overflow-hidden">
+      <button
+        onClick={onOpen}
+        className="w-full text-left p-4 flex items-start justify-between gap-3"
+      >
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase tracking-wide text-amber-500/80 border border-amber-700/40 rounded px-1.5 py-0.5">
+              {CATEGORY_LABEL[evidence.category]}
+            </span>
+            {!isRead && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
+          </div>
+          <p className="font-medium mt-1.5">{evidence.title}</p>
+          <p className="text-sm text-neutral-500">{evidence.summary}</p>
+        </div>
+        <span className="text-neutral-500 text-sm">{isOpen ? '−' : '+'}</span>
+      </button>
+      {isOpen && (
+        <div className="px-4 pb-4 border-t border-neutral-800 pt-3">
+          <div className="text-sm text-neutral-300 leading-relaxed whitespace-pre-line">
+            {evidence.content}
+          </div>
+          {evidence.relatedSuspectIds.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-neutral-800 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-neutral-500">Relacionada con:</span>
+              {evidence.relatedSuspectIds.map((sid) => {
+                const sus = suspects.find((s) => s.id === sid)
+                if (!sus) return null
+                return (
+                  <button
+                    key={sid}
+                    onClick={onSuspect}
+                    className="text-xs border border-neutral-700 hover:border-amber-600 hover:text-amber-500 rounded px-2 py-1 transition-colors"
+                  >
+                    {sus.name}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DeductionBoard({
+  code,
+  suspects,
+  initialBoard,
+}: {
+  code: string
+  suspects: Suspect[]
+  initialBoard: Record<string, Record<string, string>>
+}) {
+  const [board, setBoard] = useState(initialBoard)
+  // Guardado debounced: clics rápidos se agrupan en una sola escritura del estado
+  // final, evitando que dos guardados concurrentes lleguen desordenados al servidor.
+  const pending = useRef<Record<string, Record<string, string>> | null>(null)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function flush() {
+    if (timer.current) {
+      clearTimeout(timer.current)
+      timer.current = null
+    }
+    if (pending.current) {
+      saveBoardAction(code, pending.current)
+      pending.current = null
+    }
+  }
+
+  // guarda lo pendiente al desmontar (cambio de pestaña)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => flush, [])
+
+  function cycle(suspectId: string, col: string) {
+    setBoard((prev) => {
+      const curr = prev[suspectId]?.[col] ?? ''
+      const idx = CELL_CYCLE.indexOf(curr as (typeof CELL_CYCLE)[number])
+      const nextVal = CELL_CYCLE[(idx + 1) % CELL_CYCLE.length]
+      const next = {
+        ...prev,
+        [suspectId]: { ...prev[suspectId], [col]: nextVal },
+      }
+      pending.current = next
+      if (timer.current) clearTimeout(timer.current)
+      timer.current = setTimeout(flush, 250)
+      return next
+    })
+  }
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <h2 className="text-sm uppercase tracking-wide text-neutral-500">
+          Tablero de deducción
+        </h2>
+        <p className="text-xs text-neutral-500 mt-1">
+          Marca tus conclusiones sobre cada sospechoso. Toca una casilla para alternar:{' '}
+          <span className="text-emerald-400">✓ sí</span> ·{' '}
+          <span className="text-red-400">✗ no</span> ·{' '}
+          <span className="text-amber-400">? duda</span>. Se guarda automáticamente.
+        </p>
+      </div>
+      <div className="case-paper rounded-lg overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-neutral-500 text-xs">
+              <th className="text-left font-normal p-3">Sospechoso</th>
+              {BOARD_COLUMNS.map(([key, label]) => (
+                <th key={key} className="font-normal p-3 text-center">
+                  {label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {suspects.map((s) => (
+              <tr key={s.id} className="border-t border-neutral-800">
+                <td className="p-3">
+                  <span className="font-medium">{s.name}</span>
+                  <span className="block text-xs text-neutral-500">{s.relation}</span>
+                </td>
+                {BOARD_COLUMNS.map(([col]) => {
+                  const val = board[s.id]?.[col] ?? ''
+                  const style = CELL_STYLE[val] ?? CELL_STYLE['']
+                  return (
+                    <td key={col} className="p-2 text-center">
+                      <button
+                        onClick={() => cycle(s.id, col)}
+                        className={`w-9 h-9 rounded-md border border-neutral-700 hover:border-amber-600 text-lg leading-none transition-colors ${style.cls}`}
+                        aria-label={`${s.name}: ${col}`}
+                      >
+                        {style.sym}
+                      </button>
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   )
 }
 

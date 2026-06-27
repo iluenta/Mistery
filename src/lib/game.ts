@@ -1,5 +1,6 @@
 import {
   CASE,
+  EVIDENCE_LOCATION,
   type AccusationAxisOption,
   type Evidence,
   type TimelineEvent,
@@ -58,11 +59,14 @@ export interface PublicGameState {
     motives: AccusationAxisOption[]
   }
   notes: string
+  board: Record<string, Record<string, string>>
   accusation: PublicAccusation | null
 }
 
 function evidenceForPhase(maxPhase: number): Evidence[] {
-  return CASE.evidence.filter((e) => e.phase <= maxPhase)
+  return CASE.evidence
+    .filter((e) => e.phase <= maxPhase)
+    .map((e) => ({ ...e, location: EVIDENCE_LOCATION[e.id] }))
 }
 
 export function getPublicState(code: string): PublicGameState | null {
@@ -100,6 +104,7 @@ export function getPublicState(code: string): PublicGameState | null {
       motives: CASE.solution.motiveOptions,
     },
     notes: row.notes,
+    board: JSON.parse(row.board || '{}'),
     accusation,
   }
 }
@@ -125,6 +130,12 @@ export function saveNotes(code: string, notes: string) {
   const row = getGameRow(code)
   if (!row) throw new Error('Expediente no encontrado')
   updateGameRow(code, { notes })
+}
+
+export function saveBoard(code: string, board: Record<string, Record<string, string>>) {
+  const row = getGameRow(code)
+  if (!row) throw new Error('Expediente no encontrado')
+  updateGameRow(code, { board: JSON.stringify(board) })
 }
 
 export function resetAccusation(code: string) {

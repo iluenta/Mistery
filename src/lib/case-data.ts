@@ -8,6 +8,14 @@ export type EvidenceCategory =
   | 'testimonio'
   | 'fisico'
 
+export type EvidenceLocation =
+  | 'escena'
+  | 'edificio'
+  | 'oficina'
+  | 'comunicaciones'
+  | 'coartadas'
+  | 'documentos'
+
 export interface Evidence {
   id: string
   phase: 1 | 2 | 3
@@ -16,6 +24,38 @@ export interface Evidence {
   summary: string
   content: string
   relatedSuspectIds: string[]
+  // Se asigna en el servidor a partir de EVIDENCE_LOCATION (para la vista "mapa").
+  location?: EvidenceLocation
+}
+
+// Ubicación o fuente de cada prueba, para reorganizarlas por lugar sin tocar el guion.
+export const EVIDENCE_LOCATION: Record<string, EvidenceLocation> = {
+  e01: 'escena',
+  e02: 'escena',
+  e03: 'escena',
+  e20: 'escena',
+  e11: 'edificio',
+  e12: 'edificio',
+  e16: 'edificio',
+  e17: 'edificio',
+  e22: 'edificio',
+  e14: 'oficina',
+  e19: 'oficina',
+  e04: 'comunicaciones',
+  e05: 'comunicaciones',
+  e06: 'comunicaciones',
+  e07: 'comunicaciones',
+  e18: 'comunicaciones',
+  e24: 'comunicaciones',
+  e26: 'comunicaciones',
+  e13: 'coartadas',
+  e15: 'coartadas',
+  e23: 'coartadas',
+  e25: 'coartadas',
+  e08: 'documentos',
+  e09: 'documentos',
+  e10: 'documentos',
+  e21: 'documentos',
 }
 
 export interface SuspectResponse {

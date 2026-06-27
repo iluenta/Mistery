@@ -21,9 +21,18 @@ db.exec(`
     current_phase INTEGER NOT NULL DEFAULT 1,
     read_evidence_ids TEXT NOT NULL DEFAULT '[]',
     notes TEXT NOT NULL DEFAULT '',
+    board TEXT NOT NULL DEFAULT '{}',
     accusation TEXT
   )
 `)
+
+// Migración para expedientes creados antes de existir el tablero de deducción.
+const hasBoard = (db.prepare('PRAGMA table_info(games)').all() as { name: string }[]).some(
+  (c) => c.name === 'board'
+)
+if (!hasBoard) {
+  db.exec(`ALTER TABLE games ADD COLUMN board TEXT NOT NULL DEFAULT '{}'`)
+}
 
 export interface GameRow {
   code: string
@@ -32,6 +41,7 @@ export interface GameRow {
   current_phase: number
   read_evidence_ids: string
   notes: string
+  board: string
   accusation: string | null
 }
 
@@ -43,19 +53,29 @@ export function getGameRow(code: string): GameRow | undefined {
 export function insertGameRow(code: string) {
   const now = new Date().toISOString()
   db.prepare(
-    'INSERT INTO games (code, created_at, updated_at, current_phase, read_evidence_ids, notes, accusation) VALUES (?, ?, ?, 1, ?, ?, NULL)'
-  ).run(code, now, now, '[]', '')
+    'INSERT INTO games (code, created_at, updated_at, current_phase, read_evidence_ids, notes, board, accusation) VALUES (?, ?, ?, 1, ?, ?, ?, NULL)'
+  ).run(code, now, now, '[]', '', '{}')
 }
 
 export function updateGameRow(
   code: string,
-  fields: Partial<Pick<GameRow, 'current_phase' | 'read_evidence_ids' | 'notes' | 'accusation'>>
+  fields: Partial<
+    Pick<GameRow, 'current_phase' | 'read_evidence_ids' | 'notes' | 'board' | 'accusation'>
+  >
 ) {
   const current = getGameRow(code)
   if (!current) throw new Error('Expediente no encontrado')
 
   const next = { ...current, ...fields, updated_at: new Date().toISOString() }
   db.prepare(
-    `UPDATE games SET updated_at = ?, current_phase = ?, read_evidence_ids = ?, notes = ?, accusation = ? WHERE code = ?`
-  ).run(next.updated_at, next.current_phase, next.read_evidence_ids, next.notes, next.accusation, code)
+    `UPDATE games SET updated_at = ?, current_phase = ?, read_evidence_ids = ?, notes = ?, board = ?, accusation = ? WHERE code = ?`
+  ).run(
+    next.updated_at,
+    next.current_phase,
+    next.read_evidence_ids,
+    next.notes,
+    next.board,
+    next.accusation,
+    code
+  )
 }

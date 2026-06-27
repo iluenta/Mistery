@@ -6,6 +6,7 @@ import {
   getPublicState,
   markEvidenceRead,
   resetAccusation,
+  saveBoard,
   saveNotes,
   submitAccusation,
   type PublicGameState,
@@ -32,6 +33,13 @@ export async function advancePhaseAction(code: string): Promise<PublicGameState 
 
 export async function saveNotesAction(code: string, notes: string): Promise<void> {
   saveNotes(code, notes)
+}
+
+export async function saveBoardAction(
+  code: string,
+  board: Record<string, Record<string, string>>
+): Promise<void> {
+  saveBoard(code, board)
 }
 
 export async function submitAccusationAction(
