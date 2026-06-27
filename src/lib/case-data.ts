@@ -18,6 +18,11 @@ export interface Evidence {
   relatedSuspectIds: string[]
 }
 
+export interface SuspectResponse {
+  evidenceId: string
+  reaction: string
+}
+
 export interface Suspect {
   id: string
   name: string
@@ -28,6 +33,8 @@ export interface Suspect {
   alibiClaim: string
   motiveHint: string
   relatedEvidenceIds: string[]
+  // Reacciones al ser confrontado con una prueba concreta (interrogatorio dinámico).
+  responses: SuspectResponse[]
 }
 
 export interface AccusationAxisOption {
@@ -106,6 +113,23 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
       motiveHint:
         'Hereda junto a Helena el piso de sus padres y un 20% de las acciones de PulseFit. Helena bloqueaba sistemáticamente su intento de vender esa participación.',
       relatedEvidenceIds: ['e09', 'e15'],
+      responses: [
+        {
+          evidenceId: 'e09',
+          reaction:
+            '"Sí, quería vender mis acciones y ella me lo impedía. Estaba harto, no lo niego. Pero querer vender un papel no es querer matar a mi hermana."',
+        },
+        {
+          evidenceId: 'e15',
+          reaction:
+            '"¿Lo ven? Pasé el control de pasaportes a las 00:47. Cuando aterricé, Helena ya estaba muerta. Es materialmente imposible, dejen de perder el tiempo conmigo."',
+        },
+        {
+          evidenceId: 'e16',
+          reaction:
+            '"¿Una tarjeta maestra de socio? Yo heredé acciones, no soy socio operativo de nada. Nunca he tenido una de esas tarjetas, ni sabría por dónde se entra al edificio por detrás."',
+        },
+      ],
     },
     {
       id: 'claudia',
@@ -119,6 +143,33 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
       motiveHint:
         'Como directora financiera, es la única persona junto a Helena con acceso a las cuentas de socios de la empresa. En las últimas semanas, Helena había empezado a auditar personalmente las finanzas de PulseFit.',
       relatedEvidenceIds: ['e05', 'e07', 'e08', 'e16', 'e17'],
+      responses: [
+        {
+          evidenceId: 'e05',
+          reaction:
+            '"Ese mensaje... Helena estaba paranoica con las cuentas, decía cosas así cuando se enfadaba. No le di importancia." (No niega haberlo recibido.)',
+        },
+        {
+          evidenceId: 'e07',
+          reaction:
+            '"¿Mi teléfono en Chamberí? Pues... habré pasado por la zona en algún momento, no me acuerdo. ¿Y eso qué prueba?" (Se contradice con su declaración de que pasó toda la noche sola en casa, en Arganzuela.)',
+        },
+        {
+          evidenceId: 'e08',
+          reaction:
+            '"Esa auditoría está sin terminar, hay partidas mal clasificadas. Cuando se revise con calma no habrá nada raro, ya lo verán."',
+        },
+        {
+          evidenceId: 'e16',
+          reaction:
+            '"Sí, soy socia y tengo una de esas tarjetas. Como Helena. Que se usara una esa noche no significa que la usara yo." (Solo existían dos copias.)',
+        },
+        {
+          evidenceId: 'e18',
+          reaction:
+            '"¿Una denuncia? No tenía ni idea de que Helena fuera a hacer algo así. A mí no me dijo nada." (Pero en su mensaje de las 18:32, Helena se lo había anunciado directamente.)',
+        },
+      ],
     },
     {
       id: 'ivan',
@@ -132,6 +183,23 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
       motiveHint:
         'Ruptura reciente y tóxica. Le envió mensajes amenazantes la misma noche del crimen, horas antes de la hora estimada de la muerte.',
       relatedEvidenceIds: ['e04', 'e13'],
+      responses: [
+        {
+          evidenceId: 'e04',
+          reaction:
+            '"Sí, escribí esas barbaridades. Estaba hundido y bebido. Me avergüenzo, pero escribir una amenaza no es cumplirla. Ni siquiera me contestó."',
+        },
+        {
+          evidenceId: 'e13',
+          reaction:
+            '"Ahí lo tienen: ocho alumnos y el registro del gimnasio. Estuve dando clase hasta pasadas las doce sin salir. Pregúntenles uno por uno."',
+        },
+        {
+          evidenceId: 'e16',
+          reaction:
+            '"¿Tarjeta de socio de PulseFit? Yo soy su ex y entrenador, no tengo nada que ver con la empresa. No he pisado ese edificio en mi vida."',
+        },
+      ],
     },
     {
       id: 'lucia',
@@ -145,6 +213,33 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
       motiveHint:
         'Descubrió recientemente que es avalista solidaria de una deuda de 95.000€ de Helena: si Helena se hundía o lo hacía público, Lucía respondía con su patrimonio. Se siente utilizada, arruinada y traicionada.',
       relatedEvidenceIds: ['e10', 'e14', 'e19', 'e20'],
+      responses: [
+        {
+          evidenceId: 'e10',
+          reaction:
+            '"Firmé ese aval sin leerlo, confiando en ella. Me dejó la vida hipotecada con una firma. La odiaba por eso, ¿vale? Pero odiar a alguien no es tirarlo por un balcón."',
+        },
+        {
+          evidenceId: 'e14',
+          reaction:
+            '"Mi tarjeta dice que entré a las siete y salí a la una. Estuve allí." (No menciona la salida trasera sin lector.)',
+        },
+        {
+          evidenceId: 'e19',
+          reaction:
+            '"¿Que no me vieron una hora? Estaría en una sala, o bajé a fumar. Y sí, llevo una gabardina clara, como medio Madrid en marzo. ¿Eso me convierte en asesina?" (Nerviosa, sube el tono.)',
+        },
+        {
+          evidenceId: 'e20',
+          reaction:
+            '"Pues claro que hay cosas mías en su casa: prácticamente vivía allí trabajando para ella. Esa acreditación lleva semanas perdida."',
+        },
+        {
+          evidenceId: 'e16',
+          reaction:
+            '"¿Una tarjeta maestra de socia? Yo soy la asistente, no socia. Jamás me dieron una de esas; las tenían Helena y Claudia, y punto." (Confirma que no podía entrar por la puerta de servicio.)',
+        },
+      ],
     },
     {
       id: 'diego',
@@ -158,6 +253,23 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
       motiveHint:
         'Hay rumores de un perfil anónimo en redes sociales dedicado a "destapar" a Helena como un fraude del bienestar. Nadie ha confirmado quién está detrás.',
       relatedEvidenceIds: ['e06', 'e12'],
+      responses: [
+        {
+          evidenceId: 'e06',
+          reaction:
+            '"No sé de qué cuenta me habla. Yo no llevo ningún perfil anónimo." (Se pone a la defensiva y evita el contacto visual.)',
+        },
+        {
+          evidenceId: 'e12',
+          reaction:
+            '"Ya lo declaré: oí voces y un golpe, y llamé al portero. No vi nada más." (Su versión es más corta de lo que cabría esperar.)',
+        },
+        {
+          evidenceId: 'e17',
+          reaction:
+            '"Está bien, sí: la cuenta era mía. La odiaba por la farsa que vendía, pero yo no la toqué. Y lo que vi es verdad: una mujer con gabardina clara salió corriendo por la puerta de servicio poco antes de medianoche. No le vi la cara."',
+        },
+      ],
     },
   ],
   evidence: [

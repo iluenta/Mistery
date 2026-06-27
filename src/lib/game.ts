@@ -74,13 +74,20 @@ export function getPublicState(code: string): PublicGameState | null {
   const allCurrentRead = unlockedEvidence.every((e) => readEvidenceIds.includes(e.id))
   const accusation: PublicAccusation | null = row.accusation ? JSON.parse(row.accusation) : null
 
+  // Solo se puede confrontar a un sospechoso con pruebas que ya se han desbloqueado.
+  const unlockedIds = new Set(unlockedEvidence.map((e) => e.id))
+  const suspects = CASE.suspects.map((s) => ({
+    ...s,
+    responses: s.responses.filter((r) => unlockedIds.has(r.evidenceId)),
+  }))
+
   return {
     code,
     title: CASE.title,
     tagline: CASE.tagline,
     briefing: CASE.briefing,
     victim: CASE.victim,
-    suspects: CASE.suspects,
+    suspects,
     currentPhase: row.current_phase,
     totalPhases: TOTAL_PHASES,
     unlockedEvidence,

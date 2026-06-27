@@ -7,7 +7,7 @@ import {
   saveNotesAction,
 } from '@/lib/actions'
 import type { PublicGameState } from '@/lib/game'
-import type { Evidence, EvidenceCategory } from '@/lib/case-data'
+import type { Evidence, EvidenceCategory, Suspect } from '@/lib/case-data'
 import AccusationView from './AccusationView'
 
 type Tab = 'briefing' | 'sospechosos' | 'pruebas' | 'cronologia' | 'notas' | 'acusacion'
@@ -200,52 +200,12 @@ export default function InvestigationBoard({
         {tab === 'sospechosos' && (
           <div className="space-y-4">
             {state.suspects.map((s) => (
-              <div key={s.id} className="case-paper rounded-lg p-5">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-sm font-medium text-amber-500 shrink-0">
-                    {s.initial}
-                  </div>
-                  <div>
-                    <p className="font-medium">
-                      {s.name} <span className="text-neutral-500 text-sm">· {s.age} años</span>
-                    </p>
-                    <p className="text-xs text-neutral-500">{s.relation}</p>
-                  </div>
-                </div>
-                <p className="text-sm text-neutral-300 mt-3 italic">{s.statement}</p>
-                <p className="text-sm text-neutral-400 mt-2">
-                  <span className="text-neutral-500">Coartada: </span>
-                  {s.alibiClaim}
-                </p>
-                <p className="text-sm text-neutral-400 mt-1">
-                  <span className="text-neutral-500">Posible motivo: </span>
-                  {s.motiveHint}
-                </p>
-                {(() => {
-                  const related = state.unlockedEvidence.filter((e) =>
-                    e.relatedSuspectIds.includes(s.id)
-                  )
-                  if (related.length === 0) return null
-                  return (
-                    <div className="mt-3 pt-3 border-t border-neutral-800">
-                      <p className="text-xs text-neutral-500 mb-1.5">
-                        Pruebas del expediente que la mencionan
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {related.map((e) => (
-                          <button
-                            key={e.id}
-                            onClick={() => jumpToEvidence(e.id)}
-                            className="text-xs border border-neutral-700 hover:border-amber-600 hover:text-amber-500 rounded px-2 py-1 transition-colors"
-                          >
-                            {e.title}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })()}
-              </div>
+              <SuspectCard
+                key={s.id}
+                suspect={s}
+                unlockedEvidence={state.unlockedEvidence}
+                onJump={jumpToEvidence}
+              />
             ))}
           </div>
         )}
@@ -365,6 +325,99 @@ export default function InvestigationBoard({
         )}
       </div>
     </main>
+  )
+}
+
+function SuspectCard({
+  suspect,
+  unlockedEvidence,
+  onJump,
+}: {
+  suspect: Suspect
+  unlockedEvidence: Evidence[]
+  onJump: (id: string) => void
+}) {
+  const [confrontId, setConfrontId] = useState('')
+  const related = unlockedEvidence.filter((e) =>
+    e.relatedSuspectIds.includes(suspect.id)
+  )
+  const response = suspect.responses.find((r) => r.evidenceId === confrontId)
+  const confronted = unlockedEvidence.find((e) => e.id === confrontId)
+  const firstName = suspect.name.split(' ')[0]
+
+  return (
+    <div className="case-paper rounded-lg p-5">
+      <div className="flex items-start gap-3">
+        <div className="w-9 h-9 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-sm font-medium text-amber-500 shrink-0">
+          {suspect.initial}
+        </div>
+        <div>
+          <p className="font-medium">
+            {suspect.name}{' '}
+            <span className="text-neutral-500 text-sm">· {suspect.age} años</span>
+          </p>
+          <p className="text-xs text-neutral-500">{suspect.relation}</p>
+        </div>
+      </div>
+      <p className="text-sm text-neutral-300 mt-3 italic">{suspect.statement}</p>
+      <p className="text-sm text-neutral-400 mt-2">
+        <span className="text-neutral-500">Coartada: </span>
+        {suspect.alibiClaim}
+      </p>
+      <p className="text-sm text-neutral-400 mt-1">
+        <span className="text-neutral-500">Posible motivo: </span>
+        {suspect.motiveHint}
+      </p>
+
+      {related.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-neutral-800">
+          <p className="text-xs text-neutral-500 mb-1.5">
+            Pruebas del expediente que la mencionan
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {related.map((e) => (
+              <button
+                key={e.id}
+                onClick={() => onJump(e.id)}
+                className="text-xs border border-neutral-700 hover:border-amber-600 hover:text-amber-500 rounded px-2 py-1 transition-colors"
+              >
+                {e.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-3 pt-3 border-t border-neutral-800">
+        <p className="text-xs text-neutral-500 mb-1.5">Confrontar con una prueba</p>
+        <select
+          value={confrontId}
+          onChange={(e) => setConfrontId(e.target.value)}
+          className="w-full bg-neutral-900 border border-neutral-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-amber-600"
+        >
+          <option value="">Elige una prueba para confrontar…</option>
+          {unlockedEvidence.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.title}
+            </option>
+          ))}
+        </select>
+        {confrontId && (
+          <div className="mt-2 bg-neutral-900/60 border border-neutral-800 rounded-md p-3">
+            {response ? (
+              <p className="text-sm text-neutral-300 italic leading-relaxed whitespace-pre-line">
+                {response.reaction}
+              </p>
+            ) : (
+              <p className="text-sm text-neutral-500 italic">
+                {firstName} se encoge de hombros: no parece tener nada que añadir sobre
+                «{confronted?.title}».
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
