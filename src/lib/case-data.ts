@@ -85,15 +85,14 @@ export interface AccusationAxisOption {
 export interface CaseSolution {
   guiltySuspectId: string
   // La acusación final reconstruye la teoría completa del crimen. Para acertar hay que
-  // dar bien las TRES dimensiones (quién, cómo entró y por qué esa noche) Y aportar
-  // las pruebas requeridas más al menos `minSupporting` de las de apoyo.
+  // dar bien las TRES dimensiones (quién, cómo entró y por qué esa noche) Y aportar al
+  // menos `minDecisive` pruebas del conjunto decisivo (no se exige ninguna en concreto).
   entryMethodId: string
   motiveId: string
   entryMethodOptions: AccusationAxisOption[]
   motiveOptions: AccusationAxisOption[]
-  requiredKeyEvidenceIds: string[]
-  supportingKeyEvidenceIds: string[]
-  minSupporting: number
+  decisiveKeyEvidenceIds: string[]
+  minDecisive: number
   explanation: string
 }
 
@@ -778,12 +777,12 @@ Tienes acceso a los informes, las comunicaciones recuperadas y las declaraciones
         label: 'Para enterrar el escándalo de que los resultados de la marca eran un fraude',
       },
     ],
-    // Imprescindible: la tarjeta maestra de socio (E16) es lo único que sitúa a la
-    // asesina entrando sin ser vista, y solo Helena y Claudia tenían una.
-    requiredKeyEvidenceIds: ['e16'],
-    // Apoyo: hace falta sostener móvil y oportunidad con al menos dos de estas.
-    supportingKeyEvidenceIds: ['e07', 'e08', 'e18', 'e05'],
-    minSupporting: 2,
+    // Conjunto de pruebas decisivas: basta con aportar `minDecisive` cualesquiera de
+    // ellas (tarjeta de servicio, antena, auditoría, mensaje de voz o último mensaje
+    // de Helena). No se obliga a ninguna prueba concreta para no penalizar teorías
+    // igualmente válidas.
+    decisiveKeyEvidenceIds: ['e16', 'e07', 'e08', 'e18', 'e05'],
+    minDecisive: 3,
     explanation: `Claudia Ferrer mató a Helena Vidal: entró por la puerta de servicio con su tarjeta maestra de socia y la empujó esa misma noche porque Helena iba a denunciarla por el desvío de fondos y contarlo en directo al día siguiente.
 
 POR QUÉ CLAUDIA

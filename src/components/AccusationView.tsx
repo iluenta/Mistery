@@ -29,7 +29,8 @@ export default function AccusationView({
   }
 
   if (state.accusation) {
-    const { correct, explanation, guiltySuspectName } = state.accusation
+    const { correct, explanation, guiltySuspectName, axesCorrect, enoughEvidence } =
+      state.accusation
 
     function handleRetry() {
       startTransition(async () => {
@@ -53,11 +54,21 @@ export default function AccusationView({
               La persona responsable era{' '}
               <span className="text-neutral-200 font-medium">{guiltySuspectName}</span>.
             </p>
+          ) : axesCorrect === 3 ? (
+            <p className="text-sm text-neutral-400 mt-1">
+              Tu teoría encaja —quién, cómo entró y por qué esa noche—, pero te faltan
+              pruebas decisivas que la respalden. Vuelve a las pruebas y añade las que de
+              verdad la demuestran.
+            </p>
           ) : (
             <p className="text-sm text-neutral-400 mt-1">
-              Algo de tu teoría no encaja: el responsable, cómo entró, por qué esa noche o
-              las pruebas en las que te apoyas. No se revela qué para que puedas seguir
-              investigando.
+              Aciertas{' '}
+              <span className="text-neutral-200 font-medium">{axesCorrect} de 3</span> en tu
+              teoría (quién lo hizo, cómo entró y por qué esa noche)
+              {!enoughEvidence
+                ? ', y además te faltan pruebas decisivas en las que apoyarte'
+                : ''}
+              . No se revela cuál falla para que puedas seguir investigando.
             </p>
           )}
         </div>

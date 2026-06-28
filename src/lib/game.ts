@@ -35,6 +35,10 @@ export interface PublicAccusation {
   keyEvidenceIds: string[]
   motive: string
   correct: boolean
+  // Pistas de orientación para un intento fallido (sin revelar la solución):
+  // cuántos de los tres ejes son correctos y si las pruebas aportadas bastan.
+  axesCorrect: number
+  enoughEvidence: boolean
   explanation: string
   guiltySuspectName: string
   submittedAt: string
@@ -159,16 +163,15 @@ export function submitAccusation(
 
   const sol = CASE.solution
   const selected = payload.keyEvidenceIds
-  const hasRequired = sol.requiredKeyEvidenceIds.every((id) => selected.includes(id))
-  const supportingCount = sol.supportingKeyEvidenceIds.filter((id) =>
+  const axesCorrect =
+    (payload.suspectId === sol.guiltySuspectId ? 1 : 0) +
+    (payload.entryMethodId === sol.entryMethodId ? 1 : 0) +
+    (payload.motiveId === sol.motiveId ? 1 : 0)
+  const decisiveCount = sol.decisiveKeyEvidenceIds.filter((id) =>
     selected.includes(id)
   ).length
-  const correct =
-    payload.suspectId === sol.guiltySuspectId &&
-    payload.entryMethodId === sol.entryMethodId &&
-    payload.motiveId === sol.motiveId &&
-    hasRequired &&
-    supportingCount >= sol.minSupporting
+  const enoughEvidence = decisiveCount >= sol.minDecisive
+  const correct = axesCorrect === 3 && enoughEvidence
 
   const guilty = CASE.suspects.find((s) => s.id === sol.guiltySuspectId)!
 
@@ -181,6 +184,8 @@ export function submitAccusation(
     keyEvidenceIds: selected,
     motive: payload.motive,
     correct,
+    axesCorrect,
+    enoughEvidence,
     explanation: correct ? sol.explanation : '',
     guiltySuspectName: correct ? guilty.name : '',
     submittedAt: new Date().toISOString(),
