@@ -80,6 +80,42 @@ export default function InvestigationBoard({
   const [showHints, setShowHints] = useState(false)
   const [pruebasView, setPruebasView] = useState<'lista' | 'mapa'>('lista')
 
+  // El tablero de deducción vive aquí (no en la pestaña) para que sobreviva a los
+  // cambios de pestaña; si no, se reiniciaría y sobrescribiría lo ya marcado.
+  const [board, setBoard] = useState(initialState.board)
+  const boardPending = useRef<Record<string, Record<string, string>> | null>(null)
+  const boardTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function flushBoard() {
+    if (boardTimer.current) {
+      clearTimeout(boardTimer.current)
+      boardTimer.current = null
+    }
+    if (boardPending.current) {
+      saveBoardAction(code, boardPending.current)
+      boardPending.current = null
+    }
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => flushBoard, [])
+
+  function cycleBoard(suspectId: string, col: string) {
+    setBoard((prev) => {
+      const curr = prev[suspectId]?.[col] ?? ''
+      const idx = CELL_CYCLE.indexOf(curr as (typeof CELL_CYCLE)[number])
+      const nextVal = CELL_CYCLE[(idx + 1) % CELL_CYCLE.length]
+      const next = {
+        ...prev,
+        [suspectId]: { ...prev[suspectId], [col]: nextVal },
+      }
+      boardPending.current = next
+      if (boardTimer.current) clearTimeout(boardTimer.current)
+      boardTimer.current = setTimeout(flushBoard, 250)
+      return next
+    })
+  }
+
   function markRead(evidenceId: string) {
     if (!state.readEvidenceIds.includes(evidenceId)) {
       startTransition(async () => {
@@ -360,11 +396,7 @@ export default function InvestigationBoard({
         )}
 
         {tab === 'tablero' && (
-          <DeductionBoard
-            code={code}
-            suspects={state.suspects}
-            initialBoard={state.board}
-          />
+          <DeductionBoard suspects={state.suspects} board={board} onCycle={cycleBoard} />
         )}
 
         {tab === 'notas' && <NotesPanel code={code} initialNotes={state.notes} />}
@@ -457,51 +489,14 @@ function EvidenceCard({
 }
 
 function DeductionBoard({
-  code,
   suspects,
-  initialBoard,
+  board,
+  onCycle,
 }: {
-  code: string
   suspects: Suspect[]
-  initialBoard: Record<string, Record<string, string>>
+  board: Record<string, Record<string, string>>
+  onCycle: (suspectId: string, col: string) => void
 }) {
-  const [board, setBoard] = useState(initialBoard)
-  // Guardado debounced: clics rápidos se agrupan en una sola escritura del estado
-  // final, evitando que dos guardados concurrentes lleguen desordenados al servidor.
-  const pending = useRef<Record<string, Record<string, string>> | null>(null)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  function flush() {
-    if (timer.current) {
-      clearTimeout(timer.current)
-      timer.current = null
-    }
-    if (pending.current) {
-      saveBoardAction(code, pending.current)
-      pending.current = null
-    }
-  }
-
-  // guarda lo pendiente al desmontar (cambio de pestaña)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => flush, [])
-
-  function cycle(suspectId: string, col: string) {
-    setBoard((prev) => {
-      const curr = prev[suspectId]?.[col] ?? ''
-      const idx = CELL_CYCLE.indexOf(curr as (typeof CELL_CYCLE)[number])
-      const nextVal = CELL_CYCLE[(idx + 1) % CELL_CYCLE.length]
-      const next = {
-        ...prev,
-        [suspectId]: { ...prev[suspectId], [col]: nextVal },
-      }
-      pending.current = next
-      if (timer.current) clearTimeout(timer.current)
-      timer.current = setTimeout(flush, 250)
-      return next
-    })
-  }
-
   return (
     <div className="space-y-3">
       <div>
@@ -540,7 +535,7 @@ function DeductionBoard({
                   return (
                     <td key={col} className="p-2 text-center">
                       <button
-                        onClick={() => cycle(s.id, col)}
+                        onClick={() => onCycle(s.id, col)}
                         className={`w-9 h-9 rounded-md border border-neutral-700 hover:border-amber-600 text-lg leading-none transition-colors ${style.cls}`}
                         aria-label={`${s.name}: ${col}`}
                       >
